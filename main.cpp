@@ -23,6 +23,7 @@ public:
 	}
 
 	void print_screen() {
+		std::cout << "\x1b[2J\x1b[H";
 		for (int current_row = 0; current_row != rows; current_row++) {
 			for (int current_col = 0; current_col != cols; current_col++) {
 				if (current_col == (cols-1)) {
@@ -44,14 +45,6 @@ public:
 		clear_screen();
 	}
 
-	void clear_screen() {
-		for (std::vector<char> row : display) {
-			for (char col : row) {
-				col = ' ';
-			}
-		}
-	}
-
 	void display_pokemon(pokemon poke1, pokemon poke2) {
 		std::string poke1_level = std::to_string(poke1.level);
 		std::string poke1_health = std::to_string(poke1.health);
@@ -63,6 +56,7 @@ public:
 		put_pokemon_on_display(start_col, poke2.name, poke2_level, poke2_health);
 	}
 
+private:
 	void put_pokemon_on_display(const unsigned int start_col, std::string name, std::string level, std::string health) {
 		unsigned int current_char = start_col;
 		for (char letter : name) {
@@ -89,6 +83,13 @@ public:
 		for (char letter : health) {
 			display[2][current_char] = letter;
 			++current_char;
+		}
+	}
+	void clear_screen() {
+		for (std::vector<char> row : display) {
+			for (char col : row) {
+				col = ' ';
+			}
 		}
 	}
 };
