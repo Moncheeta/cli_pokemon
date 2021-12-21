@@ -52,39 +52,44 @@ public:
 		}
 	}
 
-	void display_pokemon(pokemon &poke1) {
-		std::string poke1_name = poke1.name;
+	void display_pokemon(pokemon poke1, pokemon poke2) {
 		std::string poke1_level = std::to_string(poke1.level);
-		for (auto letter : "(Level:") {
-			std::cout << "'" << letter << "'" << std::endl;
-		}
-		std::string poke1_health= std::to_string(poke1.health);
-		unsigned int current_char = 2;
-		for (char letter : poke1_name) {
+		std::string poke1_health = std::to_string(poke1.health);
+		unsigned int start_col = 2;
+		put_pokemon_on_display(start_col, poke1.name, poke1_level, poke1_health);
+		std::string poke2_level = std::to_string(poke2.level);
+		std::string poke2_health = std::to_string(poke2.health);
+		start_col = (((cols-poke2.name.length())-poke2_level.length())-std::string_view("(Level:").length())-4;
+		put_pokemon_on_display(start_col, poke2.name, poke2_level, poke2_health);
+	}
+
+	void put_pokemon_on_display(const unsigned int start_col, std::string name, std::string level, std::string health) {
+		unsigned int current_char = start_col;
+		for (char letter : name) {
 			display[1][current_char] = letter;
 			++current_char;
 		}
 		++current_char;
-		for (char letter : "(Level:") {
+		for (char letter : std::string_view("(Level:")) {
 			display[1][current_char] = letter;
 			++current_char;
 		}
 		unsigned int current_number = 0;
-		for (char number : poke1_level) {
-			display[1][current_char] = poke1_level[current_number];
+		for (char number : level) {
+			display[1][current_char] = level[current_number];
 			++current_number;
 			++current_char;
 		}
 		display[1][current_char] = ')';
-		current_char = 2;
-		for (char letter : "HP:") {
+		current_char = start_col;
+		for (char letter : std::string_view("HP:")) {
 			display[2][current_char] = letter;
 			++current_char;
 		}
-		for (char letter : poke1_health) {
+		for (char letter : health) {
 			display[2][current_char] = letter;
 			++current_char;
-		}	
+		}
 	}
 };
 
@@ -92,7 +97,8 @@ int main() {
 	game Battle;
 	Battle.setup_screen();
 	pokemon player1 = {"Char", 1, 100};
-	Battle.display_pokemon(player1);
+	pokemon player2 = {"Picka", 3, 80};
+	Battle.display_pokemon(player1, player2);
 	Battle.print_screen();
 	return 0;
 }
