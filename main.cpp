@@ -1,7 +1,6 @@
 #include <vector>
 #include <iostream>
 #include <string>
-#include <cmath>
 
 // If low you can Pokemon or catch it
 // Run is to run
@@ -13,25 +12,58 @@ struct pokemon {
 	int health = 100;
 };
 
-void lower_string(std::string* input) {
-	for (char &letter : *input) {
+void lower_string(std::string& input) { // this is just for convienice
+	for (char &letter : input) {
 		letter = tolower(letter);
 	}
 }
 
+void gotoxy(int x,int y) {
+    printf("%c[%d;%df",0x1B,y,x);
+}
 class Battle {
 public:
 
 	unsigned int rows, cols;
 
 	Battle() {
-		rows = 26, cols = 64;
-		std::cout << "Display Rows: " << rows << ", Cols: " << cols << std::endl;
+		FILE *fp;
+		char output[5];
+		fp = popen("tput lines", "r");
+		while (fgets(output, sizeof(output), fp) != NULL) {
+			rows = atoi(output);
+		}
+		pclose(fp);
+		if (rows%2 != 0) {
+			--rows;
+		}
+		fp = popen("tput cols", "r");
+		while (fgets(output, sizeof(output), fp) != NULL) {
+			cols = atoi(output);
+		}
+		pclose(fp);
+		if (cols%2 != 0) {
+			--cols;
+		}
+		--rows;
+		setup_screen();
 	}
 	Battle(const int r, const int c) {
-		rows = r;
-		cols = c;
-		std::cout << "Display Rows: " << rows << ", Cols: " << cols << std::endl;
+		if (r%2 != 0) {
+			rows = r-1;
+		}
+		else {
+			rows = r;
+		}
+
+		if (c%2 != 0) {
+			cols = c-1;
+		}
+		else {
+			cols = c;
+		}
+		--rows;
+		setup_screen();
 	}
 
 	std::vector<std::vector<char>> *display = new std::vector<std::vector<char>>;
@@ -70,7 +102,7 @@ public:
 	{
 		std::string output;
 		std::cin >> output;
-		lower_string(&output);
+		lower_string(output);
 		if (output == "a") { return 'a'; }
 		else if (output == "attack") { return 'a'; }
 		else if (output == "r") { return 'r'; }
@@ -110,17 +142,12 @@ public:
 		print_screen();
 	}
 
-	void gotoxy(int x,int y) {
-    	printf("%c[%d;%df",0x1B,y,x);
-	}
-
 	void game_loop(std::vector<pokemon> poke_list)
 	{
-		setup_screen();
-		const unsigned int start1_col = nearbyint((cols-std::string_view("Welcome to CLI Pokemon!").length())/2);
-		const unsigned int start1_row = nearbyint((rows/2) - 1);
-		const unsigned int start2_col = nearbyint((cols-std::string_view("Press enter to begin!").length())/2);
-		const unsigned int start2_row = nearbyint(rows/2);
+		const unsigned int start1_col = (cols-std::string_view("Welcome to CLI Pokemon!").length())/2;
+		const unsigned int start1_row = (rows/2) - 1;
+		const unsigned int start2_col = (cols-std::string_view("Press enter to begin!").length())/2;
+		const unsigned int start2_row = rows/2;
 		unsigned int current_char = start1_col;
 		for (char letter : std::string_view("Welcome to CLI Pokemon!")) {
 			(*display)[start1_row][current_char] = letter;
@@ -136,6 +163,8 @@ public:
 		std::cout << "\x1b[2J\x1b[H";
 		bool con = true, found = false;
 		unsigned int current_row = 0, current_y = 1;
+		std::string pokemon_name;
+		std::string name;
 		std::string output;
 		while (con) {
 			std::cout << "Select a pokemon: " << std::endl;
@@ -146,13 +175,12 @@ public:
 			}
 			gotoxy(19, current_y);
 			std::cin >> output;
-			std::string actualname = output;
-			std::string name;
-			lower_string(&actualname);
+			lower_string(output);
 			for (pokemon poke : poke_list) {
 				name = poke.name;
-				lower_string(&name);
-				if (actualname == name) { 
+				lower_string(name);
+				if (output == name) {
+					pokemon_name = poke.name;
 					found = true;
 				}
 			}
@@ -165,7 +193,7 @@ public:
 				for (pokemon poke : poke_list) {
 					std::cout << "\n";
 				}
-				std::cout << "You choose " << output << ". Are you sure? y/n" << std::endl;
+				std::cout << "You choose " << pokemon_name << ". Are you sure? y/n" << std::endl;
 				std::cin >> yezorno;
 				if (tolower(yezorno) == 'y') {
 					con = false;
@@ -175,7 +203,7 @@ public:
 				}
 			}
 		}
-		pokemon player1 = { output }, player2 = {"Picka", 3, 80};
+		pokemon player1 = { pokemon_name }, player2 = {"Picka", 3, 80};
 		update_screen(player1, player2);
 	}
 
