@@ -156,6 +156,7 @@ public:
 					found = true;
 				}
 			}
+			
 			if (!found) {
 				std::cout << "\x1b[2J\x1b[H";
 			}
