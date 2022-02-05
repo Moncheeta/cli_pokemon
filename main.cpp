@@ -1,16 +1,11 @@
-#include <vector>
 #include <iostream>
 #include <string>
+#include <vector>
+#include "pokemon.h"
 
 // If low you can Pokemon or catch it
 // Run is to run
 // Fight gives you options
-
-struct pokemon {
-	std::string name = "None";
-	unsigned int level = 1;
-	int health = 100;
-};
 
 void lower_string(std::string& input) { // this is just for convienice
 	for (char &letter : input) {
@@ -21,48 +16,40 @@ void lower_string(std::string& input) { // this is just for convienice
 void gotoxy(int x,int y) {
     printf("%c[%d;%df",0x1B,y,x);
 }
+
 class Battle {
 public:
 
 	unsigned int rows, cols;
 
-	Battle() {
-		FILE *fp;
-		char output[5];
-		fp = popen("tput lines", "r");
-		while (fgets(output, sizeof(output), fp) != NULL) {
-			rows = atoi(output);
-		}
-		pclose(fp);
-		if (rows%2 != 0) {
-			--rows;
-		}
-		fp = popen("tput cols", "r");
-		while (fgets(output, sizeof(output), fp) != NULL) {
-			cols = atoi(output);
-		}
-		pclose(fp);
-		if (cols%2 != 0) {
-			--cols;
-		}
-		--rows;
-		setup_screen();
-	}
-	Battle(const int r, const int c) {
-		if (r%2 != 0) {
-			rows = r-1;
+	Battle(unsigned int r = 0, unsigned int c = 0) {
+		srand((unsigned)time(0));
+		if (r == 0||c == 0) {
+			FILE *fp;
+			char output[5];
+			fp = popen("tput lines", "r");
+			while (fgets(output, sizeof(output), fp) != NULL) {
+				rows = atoi(output);
+			}
+			pclose(fp);
+
+			fp = popen("tput cols", "r");
+			while (fgets(output, sizeof(output), fp) != NULL) {
+				cols = atoi(output);
+			}
+			pclose(fp);
 		}
 		else {
 			rows = r;
-		}
-
-		if (c%2 != 0) {
-			cols = c-1;
-		}
-		else {
 			cols = c;
 		}
 		--rows;
+		if (rows%2 != 0) {
+			--rows;
+		}
+		if (cols%2 != 0) {
+			--cols;
+		}
 		setup_screen();
 	}
 
@@ -71,6 +58,17 @@ public:
 	~Battle() {
 		delete display;
 		std::cout << "Battle Ended." << std::endl;
+	}
+	
+	char get_input()
+	{
+		std::string output;
+		std::cin >> output;
+		lower_string(output);
+		if (output == "a"||output=="attack") { return 'a'; }
+		else if (output == "r"||output=="run") { return 'r'; }
+		else if (output == "p"||output=="pokemon") { return 'p'; }
+		else { return 'n'; }
 	}
 
 	void setup_screen()
@@ -96,20 +94,6 @@ public:
 			}
 			display->push_back(temp);
 		}
-	}
-	
-	char get_input()
-	{
-		std::string output;
-		std::cin >> output;
-		lower_string(output);
-		if (output == "a") { return 'a'; }
-		else if (output == "attack") { return 'a'; }
-		else if (output == "r") { return 'r'; }
-		else if (output == "run") { return 'r'; }
-		else if (output == "p") { return 'p'; }
-		else if (output == "pokemon") { return 'p'; }
-		else { return 'n'; }
 	}
 
 	void print_screen()
@@ -142,7 +126,7 @@ public:
 		print_screen();
 	}
 
-	void game_loop(std::vector<pokemon> poke_list)
+	void prep(std::vector<pokemon> poke_list, std::vector<pokemon>& players, pokemon player1 = { "None" }, pokemon opponent = { "None" })
 	{
 		const unsigned int start1_col = (cols-std::string_view("Welcome to CLI Pokemon!").length())/2;
 		const unsigned int start1_row = (rows/2) - 1;
@@ -162,11 +146,13 @@ public:
 		std::cin.get();
 		std::cout << "\x1b[2J\x1b[H";
 		bool con = true, found = false;
+		if (player1.name != "None") { con = false; }
 		unsigned int current_row = 0, current_y = 1;
 		std::string pokemon_name;
 		std::string name;
 		std::string output;
-		while (con) {
+		while (con == true)
+		{
 			std::cout << "Select a pokemon: " << std::endl;
 			current_row = 0;
 			for (pokemon poke : poke_list) {
@@ -203,8 +189,39 @@ public:
 				}
 			}
 		}
-		pokemon player1 = { pokemon_name }, player2 = {"Picka", 3, 80};
-		update_screen(player1, player2);
+		if (opponent.name == "None") {
+			unsigned int type;
+			type = rand()%poke_list.size();
+			opponent = poke_list[type];
+		}
+		if (found = true) {
+			player1.name = pokemon_name;
+		}
+		players.push_back(player1);
+		players.push_back(opponent);
+	}
+
+	char game_loop(std::vector<pokemon>& players) {
+		pokemon *player = &players[0], *opponent = &players[1];
+		unsigned int pokemon_spawn, pokemon_spawn_chance = 0.2*100;
+		while (true)
+		{
+			update_screen(*player, *opponent);
+			char action = get_input();
+			if (action != 'n') {
+				if (action == 'p') {
+					if (opponent->health <= 10) {
+						pokemon_spawn = rand()%pokemon_spawn_chance;
+						if (pokemon_spawn == 0) {
+							return 'p';
+						}
+					}
+				}
+				else if (action == 'a') {
+
+				}
+			}
+		}
 	}
 
 private:
@@ -237,6 +254,7 @@ private:
 			++current_char;
 		}
 	}
+
 	void clear_screen()
 	{
 		unsigned int current_row = 0, current_col;
@@ -246,8 +264,7 @@ private:
 			else {
 				current_col = 0;
 				for (char &col : row) {
-					if (current_col == 0) {}
-					else if (current_col == (cols-1)) {}
+					if (current_col == 0||current_col == (cols-1)) {}
 					else {
 						col = ' ';
 					}
@@ -262,10 +279,18 @@ private:
 int main() {
 	Battle* Pokemon = new Battle;
 	std::vector<pokemon>* poke_list = new std::vector<pokemon>;
-	pokemon poke1 = {"Char", 1, 100}, poke2 = {"Picka", 3, 80};
+	std::vector<attack> poke1_attacks;
+	attack main_attack = { "Lightning", 20, "Strikes an enemy with lightning" };
+	poke1_attacks.push_back(main_attack);
+	std::vector<attack> poke2_attacks;
+	main_attack = { "Fire", 25, "Burns your enemy" };
+	poke2_attacks.push_back(main_attack);
+	pokemon poke1 = {"Char", 1, 100, poke1_attacks}, poke2 = {"Picka", 3, 80, poke2_attacks};
 	poke_list->push_back(poke1);
 	poke_list->push_back(poke2);
-	Pokemon->game_loop((*poke_list));
+	std::vector<pokemon> players;
+	Pokemon->prep(*poke_list, players);
+	Pokemon->game_loop(players);
 	delete Pokemon;
 	return 0;
 }
