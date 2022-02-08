@@ -3,71 +3,55 @@
 #include <vector>
 #include <sys/ioctl.h>
 
-struct point {
+enum center_opt {
+	x,
+	y,
+	both,
+	none
+};
+
+struct location {
 	int x = 0;
 	int y = 0;
-}
+	center_opt opt = none;
+};
 
 class Terminal {
 public:
 	unsigned int rows;
 	unsigned int cols;
 
-	std::vector<std::vector<char>>> *display = new std::vector<std::vector<char>>>;
+	std::vector<std::vector<char>> *display = new std::vector<std::vector<char>>;
 
 	bool border = true;
 
-	enum center_opt {
-		x;
-		y;
-		both;
-		none;
-	}
-
-	struct location {
-		int x = 0;
-		int y = 0;
-		center_opt opt = none;
-	}
-
-	Terminal(unsigned int r = NULL, unsigned int c = NULL) {
-		if (r == NULL || c == NULL) {
+	Terminal(unsigned int r = 0, unsigned int c = 0) {
+		if (r == 0 || c == 0) {
 			struct winsize w;
 			ioctl(0, TIOCGWINSZ, &w);
-			if (r == NULL) {
-				rows = w.ws_row;
+			if (r == 0) {
+				r = w.ws_row;
 			}
-			if (c == NULL) {
-				cols = w.ws_col;
-			}
-		}
-
-		if (r != NULL || c != NULL) {
-			if (r != NULL) {
-				rows = r;
-			}
-			if (c != NULL) {
-				cols = c;
+			if (c == 0) {
+				c = w.ws_col;
 			}
 		}
-	}
-
-	~Terminal() {
-		delete *display;
+		rows = r;
+		cols = c;
 	}
 
 	void gotoxy(int x, int y) {
-		if (x < 0) {
-			x = rows - x;
+		if (x < 0 || x > rows) {
+			throw "X is out of Terminal Range";
 		}
-		if (y < 0) {
-			y = cols - y;
+		else if (y < 0 || y > cols) {
+			throw "Y is out of Terminal Range";
 		}
 		std::cout << "%c[%d;%df" << 0x1B << y << x;
 	}
 
-	void set_size(unsigned int r = NULL, unsigned int c = NULL) {
-		if (r != NULL) {
+	void set_size(unsigned int r, unsigned int c) {
+		if (r > 0 && c > 0) {
 			rows = r;
 			display->clear();
 			for (unsigned int current_row = 0; current_row != rows; current_row++) {
@@ -86,28 +70,55 @@ public:
 				display->push_back(temp);
 			}
 		}
+		else {
+			throw "Size needs to be greater than 0";
+		}
 	}
 	
-	void write(std::string text, location point) {
-		if (!border) {
-			if (point.x > cols || point.y > rows) { throw out_of_range; }
+	void write(std::string text, location loco = { 0, 0, none }, bool extend = false) {
+		if ((loco.x > border ? rows - 1 : rows) || (border && (loco.x == 1)) || (loco.x == 0)) {
+			throw "X is out of the range of the Terminal";
 		}
-		else {
-			if (point.x == 0 || point.x == cols || point.y == 0 || point.y == rows) { throw out_of_range; }
+		if ((loco.y > border ? cols - 1 : cols) || (border && cols == 1) || (cols == 0)) {
+			throw "Y is out of the range of the Terminal";
 		}
-		unsigned int max_length = cols - location.x;
-		if (border) {
-			max_length = max_length - 2;
+		if ((border && text.length() > rows - 2) || (!border && text.length() > rows) || text.find('\n') != std::string::npos) {
+			if (extend) {
+				location new_loco = loco;
+				if (new_loco.opt == both) {
+					new_loco.opt = x;
+				}
+				else if (new_loco.opt == y) {
+					new_loco.opt = none;
+				}
+				++new_loco.y;
+				write(text.substr(rows - 2), new_loco, true);
+			}
+			else {
+				throw "Text is too long";
+			}
 		}
-		for (unsigned int current_char = location.x; current_char <= text.length(); current_char++) {
-			*display[location.x + current_char][location.y];
+		switch (loco.opt) {
+			case x:
+				loco.x = (cols - text.length())/2;
+				break;
+			case y:
+				loco.y = rows/2;
+				break;
+			case both:
+				loco.x = (cols - text.length())/2;
+				loco.y = rows/2;
+				break;
+		}
+		for (auto text_pos = text.begin(); text_pos != text.end(); text_pos++) {
+			display->at(loco.x + (text_pos - text.begin())).at(loco.y) = text[text_pos - text.begin()];
 		}
 	}
 
 	void print_screen() {
 		for (auto current_row = display->begin(); current_row != display->end(); current_row++) {
-			for (auto current_col = current_row->begin(); current_col != current_row->end(); current_col++){
-				if (current_col - current_row->begin() == current_row->end() - 1){
+			for (auto current_col = current_row->begin(); current_col != current_row->end(); current_col++) {
+				if ((current_col - current_row->begin()) == ((current_row->end() - current_row->begin()) - 1)) {
 					std::cout << *current_col << '\n';
 				}
 				else {
@@ -119,25 +130,25 @@ public:
 		clear_screen();
 	}
 
-private:
 	void clear_screen() {
-		for (auto current_row = display->begin(); current_row != display->end(); current_row++) {
-			for (auto current_col = current_row->begin(); current_col != current_row->end(); current_col++){
-				if (border) {
-					if (current_col - current_row->begin() == 0 || current_col - current_row->begin() == current_row->end() - 1) {
-						*display[current_row - display->begin()][current_col - current_row->begin()] = '|';
-					}
-					else if (current_row - current_row->begin() == 0 || current_row - current_row->begin() == rows - 1) {
-						*display[current_row - display->begin()][current_col - current_row->begin()] = '-';
-					}
-					else {
-						*display[current_row - display->begin()][current_col - current_row->begin()] = ' ';
-					}
-				}
-				else {
-						*display[current_row - display->begin()][current_col - current_row->begin()] = ' ';
+		if (!border) {
+			for (std::vector<char> &row : *display) {
+				for (char &character : row) {
+					character = ' ';
 				}
 			}
 		}
+		else {
+			for (auto current_row = display->begin() + 1; current_row != display->end() - 1; current_row++) {
+				for (auto current_col = current_row->begin(); current_col != current_row->end(); current_col++) {
+					if (current_col - current_row->begin() == 0 || current_col - current_row->begin() == cols - 1) {
+						continue;
+					}
+					else {
+						*current_col = ' ';
+					}
+				}
+			}
+		}		
 	}
-}
+};
