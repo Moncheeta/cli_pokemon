@@ -1,7 +1,7 @@
-#include <iostream>
 #include <string>
 #include <vector>
-#include "pokemon.h"
+#include <iostream>
+#include "display.h"
 
 // If low you can Pokemon or catch it
 // Run is to run
@@ -13,53 +13,55 @@ void lower_string(std::string& input) { // this is just for convienice
 	}
 }
 
-void gotoxy(int x,int y) {
-    printf("%c[%d;%df",0x1B,y,x);
-}
+struct pokemon {
+	std::string name = "None";
+	unsigned int level = 1;
+	int health = 100;
+
+	std::vector<attack> attacks;
+
+	void add_attack(std::string name, unsigned int damage, std::string desc = "None")
+	{	
+		attack new_attack = { name, damage, desc };
+		attacks.push_back(new_attack);
+	}
+
+	void edit_attack(std::string name, unsigned int damage = 0, std::string desc = "None") {
+		if (!attacks.empty()) {
+			if (damage != 0) {
+				for (attack& damage_dealer : attacks) {
+					if (damage_dealer.name == name) {
+						damage_dealer.damage = damage; 
+						break;
+					}
+				}
+			}
+			else if (desc != "None") {
+				for (attack& damage_dealer : attacks) {
+					if (damage_dealer.name == name) {
+						damage_dealer.desc = desc;
+						break;
+					}
+				}
+			}
+		}
+	}
+
+	void remove_attack(std::string name) {
+		if (!attacks.empty()) {
+			for (auto it = attacks.begin(); it != attacks.end(); ++it) {
+				if (it->name == name) {
+					attacks.erase(it);
+					break;
+				}
+			}
+		}
+	}
+};
 
 class Battle {
 public:
 
-	unsigned int rows, cols;
-
-	Battle(unsigned int r = 0, unsigned int c = 0) {
-		srand((unsigned)time(0));
-		if (r == 0||c == 0) {
-			FILE *fp;
-			char output[5];
-			fp = popen("tput lines", "r");
-			while (fgets(output, sizeof(output), fp) != NULL) {
-				rows = atoi(output);
-			}
-			pclose(fp);
-
-			fp = popen("tput cols", "r");
-			while (fgets(output, sizeof(output), fp) != NULL) {
-				cols = atoi(output);
-			}
-			pclose(fp);
-		}
-		else {
-			rows = r;
-			cols = c;
-		}
-		--rows;
-		if (rows%2 != 0) {
-			--rows;
-		}
-		if (cols%2 != 0) {
-			--cols;
-		}
-		setup_screen();
-	}
-
-	std::vector<std::vector<char>> *display = new std::vector<std::vector<char>>;
-
-	~Battle() {
-		delete display;
-		std::cout << "Battle Ended." << std::endl;
-	}
-	
 	char get_input()
 	{
 		std::string output;
@@ -71,53 +73,9 @@ public:
 		else { return 'n'; }
 	}
 
-	void setup_screen()
-	{
-		for (int current_row = 0; current_row != rows; current_row++) {
-			std::vector<char> temp;
-			for (int current_col = 0; current_col != cols; current_col++) {
-
-				if (current_col == (cols-1)) {
-					temp.push_back('|');
-				}
-				else if (current_col == 0) {
-					temp.push_back('|');
-				}
-				else {
-					if (current_row == 0 || current_row == (rows-1)) {
-						temp.push_back('-');
-					}
-					else {
-						temp.push_back(' ');
-					}
-				}
-			}
-			display->push_back(temp);
-		}
-	}
-
-	void print_screen()
-	{
-		std::cout << "\x1b[2J\x1b[H";
-		for (int current_row = 0; current_row != rows; current_row++) {
-			for (int current_col = 0; current_col != cols; current_col++) {
-				if (current_col == (cols-1)) { std::cout << (*display)[current_row][current_col] << std::endl; }
-				else { std::cout << (*display)[current_row][current_col]; }
-			}
-		}
-		clear_screen();
-	}
-
 	void display_pokemon(pokemon poke1, pokemon poke2)
 	{
-		std::string poke1_level = std::to_string(poke1.level);
-		std::string poke1_health = std::to_string(poke1.health);
-		unsigned int start_col = 2;
-		put_pokemon_on_display(start_col, poke1.name, poke1_level, poke1_health);
-		std::string poke2_level = std::to_string(poke2.level);
-		std::string poke2_health = std::to_string(poke2.health);
 		start_col = (((cols-poke2.name.length())-poke2_level.length())-std::string_view("(Level:").length())-4;
-		put_pokemon_on_display(start_col, poke2.name, poke2_level, poke2_health);
 	}
 
 	void update_screen(pokemon poke1, pokemon poke2)
@@ -225,36 +183,6 @@ public:
 	}
 
 private:
-	void put_pokemon_on_display(const unsigned int start_col, std::string name, std::string level, std::string health)
-	{
-		unsigned int current_char = start_col;
-		for (char letter : name) {
-			(*display)[1][current_char] = letter;
-			++current_char;
-		}
-		++current_char;
-		for (char letter : std::string_view("(Level:")) {
-			(*display)[1][current_char] = letter;
-			++current_char;
-		}
-		unsigned int current_number = 0;
-		for (char number : level) {
-			(*display)[1][current_char] = level[current_number];
-			++current_number;
-			++current_char;
-		}
-		(*display)[1][current_char] = ')';
-		current_char = start_col;
-		for (char letter : std::string_view("HP:")) {
-			(*display)[2][current_char] = letter;
-			++current_char;
-		}
-		for (char letter : health) {
-			(*display)[2][current_char] = letter;
-			++current_char;
-		}
-	}
-
 	void clear_screen()
 	{
 		unsigned int current_row = 0, current_col;
