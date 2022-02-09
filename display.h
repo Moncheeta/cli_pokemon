@@ -38,14 +38,15 @@ public:
 		}
 		rows = r;
 		cols = c;
+		std::cout << "Rows: " << rows << " Cols: " << cols;
 	}
 
-	void gotoxy(int x, int y) {
-		if (x < 0 || x > rows) {
-			throw "X is out of Terminal Range";
+	void gotoxy(unsigned int x, unsigned int y) {
+		if (x > rows) {
+			return;
 		}
-		else if (y < 0 || y > cols) {
-			throw "Y is out of Terminal Range";
+		else if (y > cols) {
+			return;
 		}
 		std::cout << "%c[%d;%df" << 0x1B << y << x;
 	}
@@ -70,17 +71,14 @@ public:
 				display->push_back(temp);
 			}
 		}
-		else {
-			throw "Size needs to be greater than 0";
-		}
 	}
 	
 	void write(std::string text, location loco = { 0, 0, none }, bool extend = false) {
 		if ((loco.x > border ? rows - 1 : rows) || (border && (loco.x == 1)) || (loco.x == 0)) {
-			throw "X is out of the range of the Terminal";
+			return;
 		}
 		if ((loco.y > border ? cols - 1 : cols) || (border && cols == 1) || (cols == 0)) {
-			throw "Y is out of the range of the Terminal";
+			return;
 		}
 		if ((border && text.length() > rows - 2) || (!border && text.length() > rows) || text.find('\n') != std::string::npos) {
 			if (extend) {
@@ -94,9 +92,6 @@ public:
 				++new_loco.y;
 				write(text.substr(rows - 2), new_loco, true);
 			}
-			else {
-				throw "Text is too long";
-			}
 		}
 		switch (loco.opt) {
 			case x:
@@ -108,6 +103,8 @@ public:
 			case both:
 				loco.x = (cols - text.length())/2;
 				loco.y = rows/2;
+				break;
+			default:
 				break;
 		}
 		for (auto text_pos = text.begin(); text_pos != text.end(); text_pos++) {

@@ -1,2 +1,2 @@
 language = "bash"
-run = "clear ; g++ main.cpp -o main && ./main"
+run = "clear ; g++ -O2 -Wall -fsanitize=address main.cpp -o main && ./main"
