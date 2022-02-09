@@ -136,7 +136,10 @@ public:
 			}
 		}
 		else {
-			for (auto current_row = display->begin() + 1; current_row != display->end() - 1; current_row++) {
+			for (auto current_row = display->begin(); current_row != display->end(); current_row++) {
+				if (current_row - display->begin() == 0 || current_row - display->begin() == rows - 1) {
+					continue;
+				}
 				for (auto current_col = current_row->begin(); current_col != current_row->end(); current_col++) {
 					if (current_col - current_row->begin() == 0 || current_col - current_row->begin() == cols - 1) {
 						continue;
