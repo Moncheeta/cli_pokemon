@@ -11,8 +11,8 @@ enum center_opt {
 };
 
 struct location {
-	int x = 0;
-	int y = 0;
+	unsigned int x = 0;
+	unsigned int y = 0;
 	center_opt opt = none;
 };
 
@@ -24,22 +24,6 @@ public:
 	std::vector<std::vector<char>> *display = new std::vector<std::vector<char>>;
 
 	bool border = true;
-
-	Terminal(unsigned int r = 0, unsigned int c = 0) {
-		if (r == 0 || c == 0) {
-			struct winsize w;
-			ioctl(0, TIOCGWINSZ, &w);
-			if (r == 0) {
-				r = w.ws_row;
-			}
-			if (c == 0) {
-				c = w.ws_col;
-			}
-		}
-		rows = r;
-		cols = c;
-		std::cout << "Rows: " << rows << " Cols: " << cols;
-	}
 
 	void gotoxy(unsigned int x, unsigned int y) {
 		if (x > rows) {
@@ -54,6 +38,7 @@ public:
 	void set_size(unsigned int r, unsigned int c) {
 		if (r > 0 && c > 0) {
 			rows = r;
+			cols = c;
 			display->clear();
 			for (unsigned int current_row = 0; current_row != rows; current_row++) {
 				std::vector<char> temp;
@@ -72,15 +57,52 @@ public:
 			}
 		}
 	}
+
+	Terminal(unsigned int r = 0, unsigned int c = 0) {
+		if (r == 0 || c == 0) {
+			struct winsize w;
+			ioctl(0, TIOCGWINSZ, &w);
+			if (r == 0) {
+				r = w.ws_row;
+			}
+			if (c == 0) {
+				c = w.ws_col;
+			}
+		}
+		set_size(r, c);
+	}
 	
 	void write(std::string text, location loco = { 0, 0, none }, bool extend = false) {
-		if ((loco.x > border ? rows - 1 : rows) || (border && (loco.x == 1)) || (loco.x == 0)) {
-			return;
+		auto n = text.find_first_of('\n');
+		if (n != std::string::npos) {
+			extend = true;
 		}
-		if ((loco.y > border ? cols - 1 : cols) || (border && cols == 1) || (cols == 0)) {
-			return;
+		switch (loco.opt) {
+			case x:
+				if (n != std::string::npos) {
+					loco.x = ((cols - text.substr(0, n).length())/2);
+					break;
+				}
+				else {
+					loco.x = (cols - text.length())/2;
+					break;
+				}
+			case y:
+				loco.y = rows/2;
+				break;
+			case both:
+				if (n != std::string::npos) {
+					loco.x = ((cols - text.substr(0, n).length())/2);
+				}
+				else {
+					loco.x = (cols - text.length())/2;
+				}
+				loco.y = rows/2;
+				break;
+			default:
+				break;
 		}
-		if ((border && text.length() > rows - 2) || (!border && text.length() > rows) || text.find('\n') != std::string::npos) {
+		if ((border && text.length() > rows - 2) || (!border && text.length() > rows) || (n != std::string::npos)) {
 			if (extend) {
 				location new_loco = loco;
 				if (new_loco.opt == both) {
@@ -90,29 +112,29 @@ public:
 					new_loco.opt = none;
 				}
 				++new_loco.y;
-				write(text.substr(rows - 2), new_loco, true);
+				if (n != std::string::npos) {
+					write(text.substr(n + 1), new_loco, true);
+					text = text.substr(0, n);
+				}
+				else {
+					write(text.substr(rows - 2), new_loco, true);
+					text = text.substr(0, rows - 2);
+				}
 			}
 		}
-		switch (loco.opt) {
-			case x:
-				loco.x = (cols - text.length())/2;
-				break;
-			case y:
-				loco.y = rows/2;
-				break;
-			case both:
-				loco.x = (cols - text.length())/2;
-				loco.y = rows/2;
-				break;
-			default:
-				break;
+		if ((border && (loco.y > rows - 1)) || (border && (loco.y == 1)) || (border == false && (loco.y > rows)) || (loco.y == 0)) {
+			return;
+		}
+		if ((border && (loco.x > cols - 1)) || (border && loco.x == 1) || (border == false && (loco.x > cols)) || (loco.x == 0)) {
+			return;
 		}
 		for (auto text_pos = text.begin(); text_pos != text.end(); text_pos++) {
-			display->at(loco.x + (text_pos - text.begin())).at(loco.y) = text[text_pos - text.begin()];
+			(*display)[loco.y][loco.x + (text_pos - text.begin())] = *text_pos;
 		}
 	}
 
 	void print_screen() {
+		std::cout << "\x1b[2J\x1b[H";
 		for (auto current_row = display->begin(); current_row != display->end(); current_row++) {
 			for (auto current_col = current_row->begin(); current_col != current_row->end(); current_col++) {
 				if ((current_col - current_row->begin()) == ((current_row->end() - current_row->begin()) - 1)) {

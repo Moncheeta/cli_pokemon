@@ -52,7 +52,7 @@ struct pokemon {
 		}
 	}
 
-	void delete_attack(std::string name_of_attack) { // just in case
+	void delete_attack(std::string name_of_attack) { // just in case its needed
 		for (auto iter = attacks.begin(); iter != attacks.end(); iter++) {
 			if (iter->name == name_of_attack) {
 				attacks.erase(iter, iter);
@@ -69,7 +69,6 @@ public:
 
 	void on_entry() {
 		term->write("Welcome to CLI Pokemon!\nPress enter to begin!", { 0, 0, both });
-
 		term->print_screen();
 		std::cin.get();
 		std::cout << "\x1b[2J\x1b[H";
@@ -85,10 +84,11 @@ public:
 		while (con == true)
 		{
 			term->write("Select a pokemon: ");
+			term->print_screen();
 			current_row = term->border ? 1 : 0;
 			for (pokemon poke : list_of_pokemon) {
 				try {
-					term->write(poke.name, { term->border ? 1 : 0, (int)current_row });
+					term->write(poke.name, { (unsigned int)(term->border ? 1 : 0), current_row });
 					++current_row;
 				}
 				catch (...) {
@@ -185,12 +185,14 @@ public:
 };
 
 int main() {
+	std::cout << "Running" << std::endl;
 	static std::vector<pokemon> *list_of_pokemon = new std::vector<pokemon>;
 	attack Picka_Attack = { "Lightning", 50, "Shoots Lightning at your Eneny" };
 	std::vector<attack> Picka_Attacks = { Picka_Attack };
 	list_of_pokemon->push_back(pokemon("Picka", 10, 100));
 	Battle *Pokemon = new Battle;
 	Pokemon->on_entry();
+	std::cout << "here";
 	std::array<pokemon, 2> players = Pokemon->get_players(*list_of_pokemon);
 	Pokemon->game_loop(players[0], players[1]);
 	delete Pokemon;
