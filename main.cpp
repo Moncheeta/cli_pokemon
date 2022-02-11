@@ -66,12 +66,13 @@ struct pokemon {
 class Battle {
 public:
 
-	Terminal *term = new Terminal;
+	Terminal *term = new Terminal(60, 20);
 
 	void on_entry() {
 		term->write("Welcome to CLI Pokemon!\nPress enter to begin!", { 0, 0, both });
 		term->print_screen();
 		std::cin.get();
+		term->clrscr();
 	}
 
 	std::array<pokemon, 2> get_players(std::vector<pokemon> &list_of_pokemon)
@@ -110,11 +111,16 @@ public:
 				term->clrscr();
 			}
 			else {
+				term->clrscr();
 				char confirmation = 'n';
-				term->write("You choose " + player.name + ". Are you sure? y/n ", { 0, (unsigned int)(term->border ? 3+list_of_pokemon.size() : 2+list_of_pokemon.size()), none });
+				std::string query = "You choose " + player.name + ". Are you sure? y/n ";
+				term->write(query, { 0, (unsigned int)(term->border ? 2+list_of_pokemon.size() : 1+list_of_pokemon.size()), none });
 				term->print_screen();
-				term->gotoxy((unsigned int)(term->border ? 33+player.name.length() : 32+player.name.length()), (unsigned int)(term->border ? 4+list_of_pokemon.size() : 3+list_of_pokemon.size()));
+				term->gotoxy((unsigned int)(term->border ? 1 + query.length() : query.length()), (unsigned int)(term->border ? 4+list_of_pokemon.size() : 3+list_of_pokemon.size()));
+				std::cout << std::flush;
 				std::cin >> confirmation;
+				std::cout << "confirmed";
+				std::cin.get();
 				if (tolower(confirmation) == 'y') {
 					term->clrscr();
 					for (pokemon &poke : list_of_pokemon) {
@@ -186,7 +192,6 @@ public:
 };
 
 int main() {
-	std::cout << "Running" << std::endl;
 	static std::vector<pokemon> *list_of_pokemon = new std::vector<pokemon>;
 	attack Picka_Attack = { "Lightning", 50, "Shoots Lightning at your Eneny" };
 	std::vector<attack> Picka_Attacks = { Picka_Attack };

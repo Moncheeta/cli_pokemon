@@ -32,10 +32,11 @@ public:
 		else if (y > cols) {
 			return;
 		}
-		printf("%c[%d;%df", 0x1B, y, x);
+		printf("\033[%d;%dH", y, x);
 	}
 
 	void clrscr() {
+		std::cout << "\033[2J\033[1;1H";
 		std::cout << std::flush;
 	}
 
@@ -62,7 +63,7 @@ public:
 		}
 	}
 
-	Terminal(unsigned int r = 0, unsigned int c = 0) {
+	Terminal(unsigned int c = 0, unsigned int r = 0) {
 		if (r == 0 || c == 0) {
 			struct winsize w;
 			ioctl(0, TIOCGWINSZ, &w);
@@ -106,7 +107,7 @@ public:
 			default:
 				break;
 		}
-		if ((border && text.length() > rows - 2) || (!border && text.length() > rows) || (n != std::string::npos)) {
+		if ((n != std::string::npos) || (border && (loco.x + text.length() > cols - 2)) || (!border && (loco.x + text.length() > cols))) {
 			if (extend) {
 				location new_loco = loco;
 				if (new_loco.opt == both) {
@@ -132,10 +133,10 @@ public:
 		if (loco.y == 0 && border) {
 			++loco.y;
 		}
-		if ((border && (loco.y >= rows)) || (border == false && (loco.y > rows)) || (loco.y < 0)) {
+		if ((border && (loco.y >= rows)) || (!border && (loco.y > rows)) || (loco.y < 0)) {
 			return;
 		}
-		if ((border && (loco.x > cols)) || (border == false && (loco.x > cols)) || (loco.x < 0)) {
+		if ((border && (loco.x > cols)) || (!border && (loco.x > cols)) || (loco.x < 0)) {
 			return;
 		}
 		for (auto text_pos = text.begin(); text_pos != text.end(); text_pos++) {
