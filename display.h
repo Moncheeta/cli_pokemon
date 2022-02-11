@@ -37,7 +37,6 @@ public:
 
 	void clrscr() {
 		std::cout << "\033[2J\033[1;1H";
-		std::cout << std::flush;
 	}
 
 	void set_size(unsigned int r, unsigned int c) {

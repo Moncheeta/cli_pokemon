@@ -66,9 +66,10 @@ struct pokemon {
 class Battle {
 public:
 
-	Terminal *term = new Terminal(60, 20);
+	Terminal *term = new Terminal();
 
 	void on_entry() {
+		term->clrscr();
 		term->write("Welcome to CLI Pokemon!\nPress enter to begin!", { 0, 0, both });
 		term->print_screen();
 		std::cin.get();
@@ -113,26 +114,23 @@ public:
 			else {
 				term->clrscr();
 				char confirmation = 'n';
-				std::string query = "You choose " + player.name + ". Are you sure? y/n ";
-				term->write(query, { 0, (unsigned int)(term->border ? 2+list_of_pokemon.size() : 1+list_of_pokemon.size()), none });
+				std::string query = "You choose " + player.name + ". Are you sure? y/n";
+				term->write(query, { 0, (unsigned int)(term->border ? 3+list_of_pokemon.size() : 2+list_of_pokemon.size()), none });
 				term->print_screen();
-				term->gotoxy((unsigned int)(term->border ? 1 + query.length() : query.length()), (unsigned int)(term->border ? 4+list_of_pokemon.size() : 3+list_of_pokemon.size()));
-				std::cout << std::flush;
+				term->gotoxy((unsigned int)(term->border ? 3 + query.length() : 2 + query.length()), (unsigned int)(term->border ? 4+list_of_pokemon.size() : 3+list_of_pokemon.size()));
 				std::cin >> confirmation;
-				std::cout << "confirmed";
-				std::cin.get();
 				if (tolower(confirmation) == 'y') {
 					term->clrscr();
 					for (pokemon &poke : list_of_pokemon) {
 						if (poke.name == player.name) {
 							player = poke;
+							con = false;
 							break;
 						}
 					}
 				}
 				else {
 					term->clrscr();
-					continue;
 				}
 			}
 		}
