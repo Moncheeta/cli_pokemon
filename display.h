@@ -32,7 +32,11 @@ public:
 		else if (y > cols) {
 			return;
 		}
-		std::cout << "%c[%d;%df" << 0x1B << y << x;
+		printf("%c[%d;%df", 0x1B, y, x);
+	}
+
+	void clrscr() {
+		std::cout << std::flush;
 	}
 
 	void set_size(unsigned int r, unsigned int c) {
@@ -63,7 +67,7 @@ public:
 			struct winsize w;
 			ioctl(0, TIOCGWINSZ, &w);
 			if (r == 0) {
-				r = w.ws_row;
+				r = w.ws_row - 1;
 			}
 			if (c == 0) {
 				c = w.ws_col;
@@ -122,10 +126,16 @@ public:
 				}
 			}
 		}
-		if ((border && (loco.y > rows - 1)) || (border && (loco.y == 1)) || (border == false && (loco.y > rows)) || (loco.y == 0)) {
+		if (loco.x == 0 && border) {
+			++loco.x;
+		}
+		if (loco.y == 0 && border) {
+			++loco.y;
+		}
+		if ((border && (loco.y >= rows)) || (border == false && (loco.y > rows)) || (loco.y < 0)) {
 			return;
 		}
-		if ((border && (loco.x > cols - 1)) || (border && loco.x == 1) || (border == false && (loco.x > cols)) || (loco.x == 0)) {
+		if ((border && (loco.x > cols)) || (border == false && (loco.x > cols)) || (loco.x < 0)) {
 			return;
 		}
 		for (auto text_pos = text.begin(); text_pos != text.end(); text_pos++) {
@@ -133,8 +143,8 @@ public:
 		}
 	}
 
-	void print_screen() {
-		std::cout << "\x1b[2J\x1b[H";
+	void print_screen(bool clear = true) {
+		std::cout << std::flush;
 		for (auto current_row = display->begin(); current_row != display->end(); current_row++) {
 			for (auto current_col = current_row->begin(); current_col != current_row->end(); current_col++) {
 				if ((current_col - current_row->begin()) == ((current_row->end() - current_row->begin()) - 1)) {
@@ -144,9 +154,10 @@ public:
 					std::cout << *current_col;
 				}
 			}
-			std::cout << std::flush;
 		}
-		clear_screen();
+		if (clear) {
+			clear_screen();
+		}
 	}
 
 	void clear_screen() {

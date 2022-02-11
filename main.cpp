@@ -2,6 +2,7 @@
 #include <vector>
 #include <array>
 #include <iostream>
+
 #include "display.h"
 
 void lower_string(std::string& input) { // this is just for convienice
@@ -71,22 +72,20 @@ public:
 		term->write("Welcome to CLI Pokemon!\nPress enter to begin!", { 0, 0, both });
 		term->print_screen();
 		std::cin.get();
-		std::cout << "\x1b[2J\x1b[H";
 	}
 
 	std::array<pokemon, 2> get_players(std::vector<pokemon> &list_of_pokemon)
 	{
 		bool con = true, found = false;
-		unsigned int current_row = 0, current_y = 1;
+		unsigned int current_row = 0;
 		std::string input, output;
 		pokemon player;
 		pokemon opponent;
 		while (con == true)
 		{
 			term->write("Select a pokemon: ");
-			term->print_screen();
-			current_row = term->border ? 1 : 0;
-			for (pokemon poke : list_of_pokemon) {
+			current_row = term->border ? 2 : 1;
+			for (pokemon &poke : list_of_pokemon) {
 				try {
 					term->write(poke.name, { (unsigned int)(term->border ? 1 : 0), current_row });
 					++current_row;
@@ -95,7 +94,8 @@ public:
 					break;
 				};
 			}
-			term->gotoxy(19, current_y);
+			term->print_screen(false);
+			term->gotoxy(term->border ? 20 : 19, term->border ? 2 : 1);
 			std::cin >> input;
 			lower_string(input);
 			for (pokemon poke : list_of_pokemon) {
@@ -106,16 +106,17 @@ public:
 					found = true;
 				}
 			}
-			
 			if (!found) {
-				std::cout << "\x1b[2J\x1b[H";
+				term->clrscr();
 			}
 			else {
 				char confirmation = 'n';
-				term->gotoxy(term->border ? 1 : 0, term->border ? list_of_pokemon.size() + 1 : list_of_pokemon.size());
-				term->write("You choose " + player.name + ". Are you sure? y/n ");
+				term->write("You choose " + player.name + ". Are you sure? y/n ", { 0, (unsigned int)(term->border ? 3+list_of_pokemon.size() : 2+list_of_pokemon.size()), none });
+				term->print_screen();
+				term->gotoxy((unsigned int)(term->border ? 33+player.name.length() : 32+player.name.length()), (unsigned int)(term->border ? 4+list_of_pokemon.size() : 3+list_of_pokemon.size()));
 				std::cin >> confirmation;
 				if (tolower(confirmation) == 'y') {
+					term->clrscr();
 					for (pokemon &poke : list_of_pokemon) {
 						if (poke.name == player.name) {
 							player = poke;
@@ -124,7 +125,7 @@ public:
 					}
 				}
 				else {
-					std::cout << "\x1b[2J\x1b[H";
+					term->clrscr();
 					continue;
 				}
 			}
@@ -192,7 +193,6 @@ int main() {
 	list_of_pokemon->push_back(pokemon("Picka", 10, 100));
 	Battle *Pokemon = new Battle;
 	Pokemon->on_entry();
-	std::cout << "here";
 	std::array<pokemon, 2> players = Pokemon->get_players(*list_of_pokemon);
 	Pokemon->game_loop(players[0], players[1]);
 	delete Pokemon;
