@@ -3,17 +3,27 @@
 #include <vector>
 #include <sys/ioctl.h>
 
-enum center_opt {
-	x,
-	y,
-	both,
+enum alignment {
+	center_x,
+	center_y,
+	center_both,
+	left,
+	right,
+	top,
+	bottom,
+	top_left,
+	top_right,
+	top_middle,
+	bottom_left,
+	bottom_right,
+	bottom_middle,
 	none
 };
 
 struct location {
 	unsigned int x = 0;
 	unsigned int y = 0;
-	center_opt opt = none;
+	alignment opt = none;
 };
 
 class Terminal {
@@ -82,7 +92,7 @@ public:
 			extend = true;
 		}
 		switch (loco.opt) {
-			case x:
+			case center_x:
 				if (n != std::string::npos) {
 					loco.x = ((cols - text.substr(0, n).length())/2);
 					break;
@@ -91,10 +101,10 @@ public:
 					loco.x = (cols - text.length())/2;
 					break;
 				}
-			case y:
+			case center_y:
 				loco.y = rows/2;
 				break;
-			case both:
+			case center_both:
 				if (n != std::string::npos) {
 					loco.x = ((cols - text.substr(0, n).length())/2);
 				}
@@ -102,27 +112,115 @@ public:
 					loco.x = (cols - text.length())/2;
 				}
 				loco.y = rows/2;
+				break;
+			case left:
+				loco.x = 0;
+				break;
+			case right:
+				if (n != std::string::npos) {
+					loco.x = border ? cols - text.substr(0, n).length() - 1 : cols - text.substr(0, n).length();
+				}
+				else {
+					loco.x = border ? cols - text.length() - 1 : cols - text.length();
+				}
+				break;
+			case top:
+				loco.y = 0;
+				break;
+			case bottom:
+				loco.y = border ? rows - 1 : rows;
+				break;
+			case top_left:
+				loco.x = 0;
+				loco.y = 0;
+			case top_right:
+				if (n != std::string::npos) {
+					loco.x = border ? cols - text.substr(0, n).length() - 1 : cols - text.substr(0, n).length();
+				}
+				else {
+					loco.x = border ? cols - text.length() - 1 : cols - text.length();
+				}
+				loco.y = 0;
+				break;
+			case top_middle:
+				if (n != std::string::npos) {
+					loco.x = (cols - text.substr(0, n).length())/2;
+				}
+				else {
+					loco.x = (cols - text.length())/2;
+				}
+				loco.y = 0;
+				break;
+			case bottom_left:
+				loco.x = 0;
+				loco.y = border ? rows - 1 : rows; 
+				break;
+			case bottom_right:
+				if (n != std::string::npos) {
+					loco.x = border ? cols - text.substr(0, n).length() - 1 : cols - text.substr(0, n).length();
+				}
+				else {
+					loco.x = border ? cols - text.length() - 1 : cols - text.length();
+				}
+				loco.y = border ? rows - 1 : rows;
+				break;
+			case bottom_middle:
+				if (n != std::string::npos) {
+					loco.x = (cols - text.substr(0, n).length())/2;
+				}
+				else {
+					loco.x = (cols - text.length())/2;
+				}
+				loco.y = border ? rows - 1 : rows;
 				break;
 			default:
 				break;
 		}
-		if ((n != std::string::npos) || (border && (loco.x + text.length() > cols - 2)) || (!border && (loco.x + text.length() > cols))) {
+		if ((n != std::string::npos) || (border && (loco.x + text.length() > cols - 1)) || (!border && (loco.x + text.length() > cols))) {
 			if (extend) {
 				location new_loco = loco;
-				if (new_loco.opt == both) {
-					new_loco.opt = x;
+				switch (new_loco.opt) {
+					case center_both:
+						new_loco.opt = center_x;
+						break;
+					case center_y:
+						new_loco.opt = none;
+						break;
+					case top:
+						new_loco.opt = none;
+						break;
+					case top_left:
+						new_loco.opt = left;
+						break;
+					case top_right:
+						new_loco.opt = right;
+						break;
+					case top_middle:
+						new_loco.opt = center_x;
+						break;
+					case bottom: case bottom_left: case bottom_right: case bottom_middle:
+						for (auto it = text.rbegin(); it - text.rbegin() != (text.end() - text.begin()) - 3; it++) {
+							*it = '.';
+						}
+						break;
+					default:
+						break;
 				}
-				else if (new_loco.opt == y) {
-					new_loco.opt = none;
-				}
-				++new_loco.y;
-				if (n != std::string::npos) {
-					write(text.substr(n + 1), new_loco, true);
-					text = text.substr(0, n);
-				}
-				else {
-					write(text.substr(rows - 2), new_loco, true);
-					text = text.substr(0, rows - 2);
+				if ((new_loco.opt != bottom) && (new_loco.opt != bottom_left) && (new_loco.opt != bottom_right) && (new_loco.opt != bottom_middle)) {
+					if (new_loco.y == 0) {
+						++new_loco.y;
+					}
+					++new_loco.y;
+					if (n != std::string::npos) {
+						std::cout << "new string: " << text.substr(n + 1) << ", loco.x: " << new_loco.x << ", loco.y: " << new_loco.y << std::endl;
+						write(text.substr(n + 1), new_loco, true);
+						std::cout << "old string: " << text.substr(0, n) << ", old_loco.x: " << loco.x << ", old_loco.y: " << loco.y << std::endl;
+						text = text.substr(0, n);
+					}
+					else {
+						write(text.substr(cols - 2), new_loco, true);
+						text = text.substr(0, rows - 2);
+					}
 				}
 			}
 		}
@@ -132,10 +230,10 @@ public:
 		if (loco.y == 0 && border) {
 			++loco.y;
 		}
-		if ((border && (loco.y >= rows)) || (!border && (loco.y > rows)) || (loco.y < 0)) {
+		if ((loco.y > rows) || ((loco.y == rows) && border)) {
 			return;
 		}
-		if ((border && (loco.x > cols)) || (!border && (loco.x > cols)) || (loco.x < 0)) {
+		if ((loco.x > cols) || ((loco.x == cols) && border)) {
 			return;
 		}
 		for (auto text_pos = text.begin(); text_pos != text.end(); text_pos++) {

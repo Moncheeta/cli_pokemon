@@ -70,7 +70,7 @@ public:
 
 	void on_entry() {
 		term->clrscr();
-		term->write("Welcome to CLI Pokemon!\nPress enter to begin!", { 0, 0, both });
+		term->write("Welcome to CLI Pokemon!\nPress enter to begin!", { 0, 0, center_both });
 		term->print_screen();
 		std::cin.get();
 		term->clrscr();
@@ -134,11 +134,11 @@ public:
 				}
 			}
 		}
-		if (opponent.name == "None") {
+		if (opponent.name == "Not Set") {
 			unsigned int selected = rand()%list_of_pokemon.size();
 			opponent = list_of_pokemon[selected];
 		}
-		std::array<pokemon, 2> players = { player, opponent};
+		std::array<pokemon, 2> players = { player, opponent };
 		return players;
 	}
 
@@ -156,8 +156,10 @@ public:
 
 	void display_pokemon(pokemon &poke1, pokemon &poke2)
 	{
-		term->write(poke1.name + " (Level: " + std::to_string(poke1.level) + ')', { 1, 1 });
-		term->write("HP: " + std::to_string(poke1.health), { 1, 2 });
+		term->write(poke1.name + " (Level: " + std::to_string(poke1.level) + ")\nHP: " + std::to_string(poke1.health));
+		std::cout << term->rows << ", " << term->cols;
+		std::cin.get();
+		term->write(poke2.name + " (Level: " + std::to_string(poke2.level) + ")\nHP: " + std::to_string(poke2.health), { 0, 0, top_right });
 	}
 
 	void update_screen(pokemon poke1, pokemon poke2)
@@ -192,8 +194,9 @@ public:
 int main() {
 	static std::vector<pokemon> *list_of_pokemon = new std::vector<pokemon>;
 	attack Picka_Attack = { "Lightning", 50, "Shoots Lightning at your Eneny" };
-	std::vector<attack> Picka_Attacks = { Picka_Attack };
-	list_of_pokemon->push_back(pokemon("Picka", 10, 100));
+	attack Char_Attack = { "Fire", 75, "Burns your Enemy" };
+	list_of_pokemon->push_back(pokemon("Picka", 10, 100, Picka_Attack));
+	list_of_pokemon->push_back(pokemon("Char", 5, 75, Char_Attack));
 	Battle *Pokemon = new Battle;
 	Pokemon->on_entry();
 	std::array<pokemon, 2> players = Pokemon->get_players(*list_of_pokemon);
