@@ -29,37 +29,18 @@ struct pokemon {
   unsigned int level;
   int health;
 
+  std::string character = "";
+
   std::vector<attack> attacks;
 
-  pokemon(std::string new_name = "Not Set", unsigned int new_level = 0,
-          int new_health = 0, attack initial_attack = {"Not Set", 0, "None"}) {
+  pokemon(std::string new_name = "Not Set", unsigned int new_level = 0, int new_health = 0, 
+  std::string &new_character, std::vector<attack> &new_attacks) {
     name = new_name;
     level = new_level;
     health = new_health;
-    attacks.push_back(initial_attack);
+    character = new_character;
+    attacks = new_attacks;
   }
-
-  void set_attacks(std::vector<attack> new_attacks) { attacks = new_attacks; }
-
-  void new_attack(attack new_attack) { attacks.push_back(new_attack); }
-
-  void modify_attack(std::string attack_name, attack new_attack) {
-    for (attack &attack_in_attacks : attacks) {
-      if (attack_in_attacks.name == attack_name) {
-        attack_in_attacks = new_attack;
-      }
-    }
-  }
-
-  void delete_attack(std::string name_of_attack) { // just in case its needed
-    for (auto iter = attacks.begin(); iter != attacks.end(); iter++) {
-      if (iter->name == name_of_attack) {
-        attacks.erase(iter, iter);
-        return;
-      }
-    }
-  }
-};
 
 class Battle {
 public:
@@ -162,8 +143,9 @@ public:
   void display_pokemon(pokemon &poke1, pokemon &poke2) {
     term->write(poke1.name + " (Level: " + std::to_string(poke1.level) +
                 ")\nHP: " + std::to_string(poke1.health));
-    std::cout << term->rows << ", " << term->cols;
-    std::cin.get();
+    for (char[10] &row : poke1.skin) {
+      term->write(std::string(row), )
+    }
     term->write(poke2.name + " (Level: " + std::to_string(poke2.level) +
                     ")\nHP: " + std::to_string(poke2.health),
                 {0, 0, top_right});
@@ -197,10 +179,12 @@ public:
 
 int main() {
   static std::vector<pokemon> *list_of_pokemon = new std::vector<pokemon>;
-  attack Picka_Attack = {"Lightning", 50, "Shoots Lightning at your Eneny"};
-  attack Char_Attack = {"Fire", 75, "Burns your Enemy"};
-  list_of_pokemon->push_back(pokemon("Picka", 10, 100, Picka_Attack));
-  list_of_pokemon->push_back(pokemon("Char", 5, 75, Char_Attack));
+  attack Picka_Attack = { "Lightning", 50, "Shoots Lightning at your Eneny" };
+  std::vector<attack> Pickas_Attacks = { Picka_Attack };
+  attack Char_Attack = { "Fire", 75, "Burns your Enemy" };
+  std::vector<attack> Chars_Attacks = { Char_Attack };
+  list_of_pokemon->push_back(pokemon("Picka", 10, 100, "this is a\ntest\nfor\ncharacter\ndisplay", Pickas_Attacks));
+  list_of_pokemon->push_back(pokemon("Char", 5, 75, "nothing", Chars_Attacks));
   Battle *Pokemon = new Battle;
   Pokemon->on_entry();
   std::array<pokemon, 2> players = Pokemon->get_players(*list_of_pokemon);
