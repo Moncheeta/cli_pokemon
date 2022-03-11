@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <vector>
+#include <iostream>
 #include <sys/ioctl.h>
 
 enum alignment {
@@ -133,6 +134,7 @@ public:
 			case top_left:
 				loco.x = 0;
 				loco.y = 0;
+				break;
 			case top_right:
 				if (n != std::string::npos) {
 					loco.x = border ? cols - text.substr(0, n).length() - 1 : cols - text.substr(0, n).length();

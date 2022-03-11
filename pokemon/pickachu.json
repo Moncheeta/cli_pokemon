@@ -1,0 +1,12 @@
+{
+	"Name": "Pickachu",
+	"Health": "100",
+	"Character": "                   ,              \n              :K              \n              0O              \n              0l              \n              K'              \n              0xkxl'   .;:'   \n              0KKKKKddKKKO.   \n      .;d;   :KKKKKKKk        \n    ,xKKK.   kdkKKKKKO        \n  c0KKK0Ooo  K';KKK0OO        \n.0KKKKOx:kKk,:00KO0l;c        \n.KKK0kxx.cKKc;O0,,xOo,        \n KK0k;;x .KKddK0;;'0O.        \n dKk  ;x .0K0OKKclxKllKK,     \n .k   od;dlKK0KKodK0d0K0      \n      xxd: OKK0kOO0OKKO       \n      , ,. OKKK0O0K0O.        \n        ..cKKKKKKKK:          \n          OKKKKKKKK.          \n         :KKKKKKKKKc          \n         0KKKKKKKKK0.         \n        .00KKKKKKKKKx         \n         xxkOOkkxkk0o         \n         ooo.   dxxx'         \n        :          .l.        \n",
+	"Attacks": [
+		{
+			"Name": "Lightning",
+			"Damage": "50",
+			"Desc": "No desc yet"
+		}
+	]
+}

@@ -1,2 +1,0 @@
-language = "bash"
-run = "clear && g++ -O2 -fsanitize=address -Wall main.cpp -o main && ./main"
