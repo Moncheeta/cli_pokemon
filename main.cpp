@@ -135,18 +135,16 @@ public:
   }
 
   unsigned int game_loop(pokemon &player, pokemon &opponent) {
-    unsigned int pokemon_spawn, pokemon_spawn_chance = 20;
     while (true) {
       update_screen(player, opponent);
-
       char action = get_input();
       if (action == 'a') {
         unsigned int selected_attack = get_attack(player);
         try {
           player.impose_attack(opponent, player.attacks[selected_attack]);
         }
-        catch (pokemon_died) {
-          return 0; // return who won. 0 is player while 1 is enemy
+        catch (pokemon_died&) {
+          return 0;
         }
       }
       else if (action == 'r') {

@@ -5,8 +5,7 @@
 	"Attacks": [
 		{
 			"Name": "Fire",
-			"Damage": "75",
-			"Desc": "No desc yet"
+			"Damage": "75"
 		}
 	]
 }

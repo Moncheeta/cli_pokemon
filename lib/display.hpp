@@ -21,10 +21,22 @@ enum alignment {
 	none
 };
 
+enum direction {
+	horizontal,
+	vertical,
+	no_direction
+};
+
 struct location {
 	unsigned int x = 0;
 	unsigned int y = 0;
 	alignment opt = none;
+
+	location(unsigned int new_x = 0, unsigned int new_y = 0, alignment new_opt = none) {
+		x = new_x;
+		y = new_y;
+		opt = new_opt;
+	}
 };
 
 class Terminal {
@@ -65,7 +77,7 @@ public:
 						temp.push_back('-');
 					}
 					else {
-						temp.push_back(' '); 
+						temp.push_back(' ');
 					}
 				}
 				display->push_back(temp);
@@ -86,7 +98,7 @@ public:
 		}
 		set_size(r, c);
 	}
-	
+
 	void write(std::string text, location loco = { 0, 0, none }, bool extend = false) {
 		auto n = text.find_first_of('\n');
 		if (n != std::string::npos) {
@@ -155,7 +167,7 @@ public:
 				break;
 			case bottom_left:
 				loco.x = 0;
-				loco.y = border ? rows - 1 : rows; 
+				loco.y = border ? rows - 1 : rows;
 				break;
 			case bottom_right:
 				if (n != std::string::npos) {
@@ -260,6 +272,44 @@ public:
 		}
 	}
 
+	void draw_line(location loco = { 0, 0, none }, unsigned int length = 0, direction dir = no_direction) {
+		if (length == 0) {
+			return; // no point
+		}
+		if (border && loco.x == 0) {
+			loco.x++;
+		}
+		if (border && loco.y == 0) {
+			loco.y++;
+		}
+		if (dir == horizontal) {
+			if ((border ? loco.x + length >= cols : loco.x + length > cols) || (border && loco.x + length == 0)) {
+				return;
+			}
+			for (unsigned int current_x = loco.x; loco.x + current_x != loco.x + length; current_x++) {
+				(*display)[loco.y][loco.x + current_x] = '-';
+			}
+		}
+		else if (dir == vertical) {
+			if ((border ? loco.y + length >= rows : loco.x + length > rows) || (border && loco.y + length == 0)) {
+				return;
+			}
+			for (unsigned int current_y = loco.y; loco.y + current_y != loco.y + length; current_y++) {
+				(*display)[loco.y + current_y][loco.x] = '|';
+			}
+		}
+	}
+
+	void draw_quad(location loco = { 0, 0 }, unsigned int length_x = 0, unsigned int length_y = 0) {
+		if (length_x == 0 || length_y == 0) {
+			return;
+		}
+		draw_line(location(loco.x, loco.y, none), length_x, horizontal);
+		draw_line(location(loco.x, loco.y + length_y, none), length_x, horizontal);
+		draw_line(location(loco.x, loco.y), length_y, vertical);
+		draw_line(location(loco.x + length_x, loco.y, none), length_y, vertical);
+	}
+
 	void clear_screen() {
 		if (!border) {
 			for (std::vector<char> &row : *display) {
@@ -282,6 +332,6 @@ public:
 					}
 				}
 			}
-		}		
+		}
 	}
 };
