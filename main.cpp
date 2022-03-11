@@ -95,7 +95,6 @@ public:
   }
 
   char get_input() {
-    term->gotoxy(term->border ? 1 : 0, term->rows - 1);
     std::string output;
     std::cin >> output;
     lower_string(output);
@@ -108,6 +107,16 @@ public:
     } else {
       return 'n';
     }
+  }
+
+  unsigned int get_attack(pokemon player) {
+    std::string output;
+    std::cout << "Which attack do you wan't to use? ";
+    for (auto attack_iter = player.attacks.begin(); attack_iter != player.attacks.end(); ++attack_iter) {
+      std::cout << attack_iter - player.attacks.begin() << ": " << attack_iter->name << ", ";
+    }
+    std::cin >> output;
+    return stoi(output);
   }
 
   void display_pokemon(pokemon &poke1, pokemon &poke2) {
@@ -125,22 +134,35 @@ public:
     term->print_screen();
   }
 
-  char game_loop(pokemon &player, pokemon &opponent) {
+  unsigned int game_loop(pokemon &player, pokemon &opponent) {
     unsigned int pokemon_spawn, pokemon_spawn_chance = 20;
     while (true) {
       update_screen(player, opponent);
+
       char action = get_input();
-      if (action != 'n') {
-        if (action == 'p') {
-          if (opponent.health <= 10) {
-            pokemon_spawn = rand() % pokemon_spawn_chance;
-            if (pokemon_spawn == 0) {
-              return 'p';
-            }
-          }
-        } else if (action == 'a') {
-          return 'n';
+      if (action == 'a') {
+        unsigned int selected_attack = get_attack(player);
+        try {
+          player.impose_attack(opponent, player.attacks[selected_attack]);
         }
+        catch (pokemon_died) {
+          return 0; // return who won. 0 is player while 1 is enemy
+        }
+      }
+      else if (action == 'r') {
+        return 2; // signaling a run
+      }
+      else if (action == 'p') {
+        if (opponent.health <= 10) {
+          if ((rand() % 2) == 0) {
+            player.collection.push_back(opponent);
+            return 3; // signaling no win as opponent has left(or has been captured)
+          }
+        }
+      }
+
+      if (player.health <= 0) {
+        return 1;
       }
     }
   }

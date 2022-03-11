@@ -11,16 +11,19 @@
 
 using namespace nlohmann;
 
+struct pokemon_died : public std::exception {
+  const char* what() const throw() {
+    return "Pokemon Died";
+  }
+};
+
 struct attack {
   std::string name;
   unsigned int damage;
-  std::string desc;
 
-  attack(std::string new_name, unsigned int new_damage,
-         std::string new_desc = "None") {
+  attack(std::string new_name, unsigned int new_damage) {
     name = new_name;
     damage = new_damage;
-    desc = new_desc;
   }
 };
 
@@ -33,13 +36,35 @@ struct pokemon {
 
   std::vector<attack> attacks;
 
+  std::vector<pokemon> collection;
+
   pokemon(std::string new_name = "Not Set", unsigned int new_level = 0, int new_health = 0, 
-  std::string new_character = "There Is No\nCharacter", std::vector<attack> new_attacks = std::vector<attack>(1, attack("None", 0))) {
+      std::string new_character = "There Is No\nCharacter", std::vector<attack> new_attacks = std::vector<attack>(1, attack("None", 0)), 
+      std::vector<pokemon> new_collection = {}) {
     name = new_name;
     level = new_level;
     health = new_health;
     character = new_character;
     attacks = new_attacks;
+    collection = new_collection;
+  }
+
+  void impose_attack(pokemon &enemy, attack chosen_attack) {
+    if ((rand() % 2) == 2) {
+      return;
+    }
+    unsigned int sign = rand() & 1;
+    unsigned int damage = rand() % 4;
+    if (sign == 0) {
+      damage = chosen_attack.damage - damage;
+    }
+    else {
+      damage = chosen_attack.damage + damage;
+    }
+    enemy.health = enemy.health - damage;
+    if (enemy.health <= 0) {
+      throw pokemon_died();
+    }
   }
 };
 
@@ -51,7 +76,7 @@ std::vector<pokemon> get_all_pokemon() {
     pokemon_file >> data;
     std::vector<attack> new_pokemon_attacks;
     for (auto &attackinjson : data["Attacks"]) {
-      attack new_attack = { attackinjson["Name"], attackinjson["Damage"], attackinjson["Desc"] };
+      attack new_attack = { attackinjson["Name"], attackinjson["Damage"] };
       new_pokemon_attacks.push_back(new_attack);
     }
     pokemon new_pokemon(data["Name"], 0, data["Health"], data["Character"], new_pokemon_attacks);
