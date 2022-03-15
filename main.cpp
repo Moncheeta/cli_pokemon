@@ -110,6 +110,7 @@ public:
   }
 
   unsigned int get_attack(pokemon player) {
+    term->draw_quad({ 0, term->rows - 5 }, term->cols/2 , 2);
     std::string output;
     std::cout << "Which attack do you wan't to use? ";
     for (auto attack_iter = player.attacks.begin(); attack_iter != player.attacks.end(); ++attack_iter) {
@@ -167,7 +168,8 @@ public:
 };
 
 int main() {
-  static std::vector<pokemon> all_pokemon = get_all_pokemon();
+  srand(time(NULL));
+  static const std::vector<pokemon> all_pokemon = get_all_pokemon();
   Battle *Pokemon = new Battle;
   Pokemon->on_entry();
   std::array<pokemon, 2> players = Pokemon->set_players(all_pokemon);
