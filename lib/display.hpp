@@ -226,9 +226,7 @@ public:
 					}
 					++new_loco.y;
 					if (n != std::string::npos) {
-						std::cout << "new string: " << text.substr(n + 1) << ", loco.x: " << new_loco.x << ", loco.y: " << new_loco.y << std::endl;
 						write(text.substr(n + 1), new_loco, true);
-						std::cout << "old string: " << text.substr(0, n) << ", old_loco.x: " << loco.x << ", old_loco.y: " << loco.y << std::endl;
 						text = text.substr(0, n);
 					}
 					else {
@@ -300,7 +298,7 @@ public:
 		}
 	}
 
-	void draw_quad(location loco = { 0, 0 }, unsigned int length_x = 0, unsigned int length_y = 0) {
+	void draw_quad(location loco = { 0, 0, none }, unsigned int length_x = 0, unsigned int length_y = 0) {
 		if (length_x == 0 || length_y == 0) {
 			return;
 		}

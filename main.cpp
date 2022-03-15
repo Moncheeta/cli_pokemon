@@ -25,7 +25,7 @@ public:
     term->clrscr();
   }
 
-  std::array<pokemon, 2> set_players(std::vector<pokemon> &list_of_pokemon) {
+  std::array<pokemon, 2> set_players(const std::vector<pokemon> &list_of_pokemon) {
     bool con = true, found = false;
     unsigned int current_row = 0;
     std::string input, output;
@@ -33,18 +33,19 @@ public:
     pokemon opponent;
     while (con == true) {
       term->write("Select a pokemon: ");
-      current_row = term->border ? 2 : 1;
-      for (pokemon &poke : list_of_pokemon) {
+      current_row = 2;
+      for (const pokemon &poke : list_of_pokemon) {
         try {
           term->write(poke.name,
-                      {(unsigned int)(term->border ? 1 : 0), current_row});
+                      {1, current_row});
           ++current_row;
-        } catch (...) {
+        }
+        catch (...) {
           break;
         };
       }
       term->print_screen(false);
-      term->gotoxy(term->border ? 20 : 19, term->border ? 2 : 1);
+      term->gotoxy(20, 2);
       std::cin >> input;
       lower_string(input);
       for (pokemon poke : list_of_pokemon) {
@@ -57,39 +58,32 @@ public:
       }
       if (!found) {
         term->clrscr();
-      } else {
+      }
+      else {
         term->clrscr();
         char confirmation = 'n';
-        std::string query = "You choose " + player.name + ". Are you sure? y/n";
-        term->write(query,
-                    {0,
-                     (unsigned int)(term->border ? 3 + list_of_pokemon.size()
-                                                 : 2 + list_of_pokemon.size()),
-                     none});
+        term->write("You choose " + player.name + ". Are you sure? y/n",
+            { 0, (unsigned int)(3 + list_of_pokemon.size()), none});
         term->print_screen();
-        term->gotoxy((unsigned int)(term->border ? 3 + query.length()
-                                                 : 2 + query.length()),
-                     (unsigned int)(term->border ? 4 + list_of_pokemon.size()
-                                                 : 3 + list_of_pokemon.size()));
+        term->gotoxy((unsigned int)(33 + player.name.length()), (unsigned int)(4 + list_of_pokemon.size()));
         std::cin >> confirmation;
         if (tolower(confirmation) == 'y') {
           term->clrscr();
-          for (pokemon &poke : list_of_pokemon) {
+          for (const pokemon &poke : list_of_pokemon) {
             if (poke.name == player.name) {
               player = poke;
               con = false;
               break;
             }
           }
-        } else {
+        }
+        else {
           term->clrscr();
         }
       }
     }
-    if (opponent.name == "Not Set") {
-      unsigned int selected = rand() % list_of_pokemon.size();
-      opponent = list_of_pokemon[selected];
-    }
+    unsigned int selected = rand() % list_of_pokemon.size();
+    opponent = list_of_pokemon[selected];
     std::array<pokemon, 2> players = {player, opponent};
     return players;
   }
