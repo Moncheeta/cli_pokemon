@@ -1,7 +1,10 @@
-#include <string>
-#include <vector>
 #include <array>
+#include <cstdio>
 #include <iostream>
+#include <string>
+#include <termios.h>
+#include <unistd.h>
+#include <vector>
 
 #include "lib/display.hpp"
 #include "pokemon.hpp"
@@ -12,6 +15,34 @@ void lower_string(std::string &input) { // this is just for convienice
   }
 }
 
+std::string cut_off_string(std::string text, unsigned int max_length,
+                           std::string cut_off = "...") {
+  if (text.length() < max_length) {
+    return text;
+  }
+  return text.substr(max_length - cut_off.length()) + cut_off;
+}
+
+char getch() {
+  char buf = 0;
+  struct termios old;
+  if (tcgetattr(0, &old) < 0)
+    perror("tcsetattr()");
+  old.c_lflag &= ~ICANON;
+  old.c_lflag &= ~ECHO;
+  old.c_cc[VMIN] = 1;
+  old.c_cc[VTIME] = 0;
+  if (tcsetattr(0, TCSANOW, &old) < 0)
+    perror("tcsetattr ICANON");
+  if (read(0, &buf, 1) < 0)
+    perror("read()");
+  old.c_lflag |= ICANON;
+  old.c_lflag |= ECHO;
+  if (tcsetattr(0, TCSADRAIN, &old) < 0)
+    perror("tcsetattr ~ICANON");
+  return (buf);
+}
+
 class Battle {
 public:
   Terminal *term = new Terminal();
@@ -20,12 +51,13 @@ public:
     term->clrscr();
     term->write("Welcome to CLI Pokemon!\nPress enter to begin!",
                 {0, 0, center_both});
-    term->print_screen();
+    term->print();
     std::cin.get();
     term->clrscr();
   }
 
-  std::array<pokemon, 2> set_players(const std::vector<pokemon> &list_of_pokemon) {
+  std::array<pokemon, 2>
+  set_players(const std::vector<pokemon> &list_of_pokemon) {
     bool con = true, found = false;
     unsigned int current_row = 0;
     std::string input, output;
@@ -36,15 +68,13 @@ public:
       current_row = 2;
       for (const pokemon &poke : list_of_pokemon) {
         try {
-          term->write(poke.name,
-                      {1, current_row});
+          term->write(poke.name, {1, current_row});
           ++current_row;
-        }
-        catch (...) {
+        } catch (...) {
           break;
         };
       }
-      term->print_screen(false);
+      term->print(false);
       term->gotoxy(20, 2);
       std::cin >> input;
       lower_string(input);
@@ -58,14 +88,14 @@ public:
       }
       if (!found) {
         term->clrscr();
-      }
-      else {
+      } else {
         term->clrscr();
         char confirmation = 'n';
         term->write("You choose " + player.name + ". Are you sure? y/n",
-            { 0, (unsigned int)(3 + list_of_pokemon.size()), none});
-        term->print_screen();
-        term->gotoxy((unsigned int)(33 + player.name.length()), (unsigned int)(4 + list_of_pokemon.size()));
+                    {0, (unsigned int)(3 + list_of_pokemon.size()), none});
+        term->print();
+        term->gotoxy((unsigned int)(33 + player.name.length()),
+                     (unsigned int)(4 + list_of_pokemon.size()));
         std::cin >> confirmation;
         if (tolower(confirmation) == 'y') {
           term->clrscr();
@@ -76,8 +106,7 @@ public:
               break;
             }
           }
-        }
-        else {
+        } else {
           term->clrscr();
         }
       }
@@ -104,14 +133,114 @@ public:
   }
 
   unsigned int get_attack(pokemon player) {
-    term->draw_quad({ 0, term->rows - 5 }, term->cols/2 , 2);
-    std::string output;
-    std::cout << "Which attack do you wan't to use? ";
-    for (auto attack_iter = player.attacks.begin(); attack_iter != player.attacks.end(); ++attack_iter) {
-      std::cout << attack_iter - player.attacks.begin() << ": " << attack_iter->name << ", ";
+    unsigned int num_of_attacks = player.attacks.size();
+    unsigned int current_sel = 0;
+    bool con = true;
+    while (con) {
+      term->draw_quad({0, term->rows - 6}, term->cols / 2, 3);
+      if (num_of_attacks >= 1) {
+        if (current_sel == 0) {
+          term->write(
+              cut_off_string(">" + player.attacks[0].name, term->cols / 2 - 2),
+              {1, term->rows - 5});
+        } else {
+          term->write(
+              cut_off_string(player.attacks[0].name, term->cols / 2 - 2),
+              {1, term->rows - 5});
+        }
+      } else {
+        if (current_sel == 0) {
+          term->write(">", {1, term->rows - 5});
+        }
+      }
+      term->draw_quad({0, term->rows - 4}, term->cols / 2, 3);
+      if (num_of_attacks >= 2) {
+        if (current_sel == 1) {
+          term->write(
+              cut_off_string(">" + player.attacks[1].name, term->cols / 2 - 2),
+              {1, term->rows - 2});
+        } else {
+          term->write(
+              cut_off_string(player.attacks[1].name, term->cols / 2 - 2),
+              {1, term->rows - 2});
+        }
+      } else {
+        if (current_sel == 1) {
+          term->write(">", {1, term->rows - 2});
+        }
+      }
+      term->draw_quad({term->cols / 2, term->rows - 6}, term->cols / 2, 3);
+      if (num_of_attacks >= 3) {
+        if (current_sel == 2) {
+          term->write(
+              cut_off_string(">" + player.attacks[2].name, term->cols / 2 - 2),
+              {(term->cols / 2) + 1, term->rows - 5});
+        } else {
+          term->write(
+              cut_off_string(player.attacks[2].name, term->cols / 2 - 2),
+              {(term->cols / 2) + 1, term->rows - 5});
+        }
+      } else {
+        if (current_sel == 2) {
+          term->write(">", {(term->cols / 2) + 1, term->rows - 5});
+        }
+      }
+      term->draw_quad({term->cols / 2, term->rows - 4}, term->cols / 2, 3);
+      if (num_of_attacks >= 4) {
+        if (current_sel == 3) {
+          term->write(
+              cut_off_string(">" + player.attacks[3].name, term->cols / 2 - 2),
+              {term->cols / 2 + 1, term->rows - 2});
+        } else {
+          term->write(
+              cut_off_string(player.attacks[3].name, term->cols / 2 - 2),
+              {term->cols / 2 + 1, term->rows - 2});
+        }
+      } else {
+        if (current_sel == 3) {
+          term->write(">", {(term->cols / 2) + 1, term->rows - 2});
+        }
+      }
+      term->print();
+      if (getch() == '\n') {
+        con = false;
+        continue;
+      }
+      getch();
+      switch (getch()) {
+      case 'A': // up
+        if (current_sel == 1) {
+          current_sel = 0;
+        } else if (current_sel == 3) {
+          current_sel = 2;
+        }
+        break;
+      case 'B': // down
+        if (current_sel == 0) {
+          current_sel = 1;
+        } else if (current_sel == 2) {
+          current_sel = 3;
+        }
+        break;
+      case 'D': // left
+        if (current_sel == 2) {
+          current_sel = 0;
+        } else if (current_sel == 3) {
+          current_sel = 1;
+        }
+        break;
+      case 'C': // right
+        if (current_sel == 0) {
+          current_sel = 2;
+        } else if (current_sel == 1) {
+          current_sel = 3;
+        }
+        break;
+      default:
+        break;
+      }
     }
-    std::cin >> output;
-    return stoi(output);
+    return current_sel;
   }
 
   void display_pokemon(pokemon &poke1, pokemon &poke2) {
@@ -124,36 +253,33 @@ public:
                 {0, 0, top_right});
   }
 
-  void update_screen(pokemon poke1, pokemon poke2) {
+  void update_screen(pokemon poke1, pokemon poke2, bool clear = true) {
     display_pokemon(poke1, poke2);
-    term->print_screen();
+    term->print(clear);
   }
 
   unsigned int game_loop(pokemon &player, pokemon &opponent) {
     while (true) {
-      update_screen(player, opponent);
+      update_screen(player, opponent, false);
       char action = get_input();
       if (action == 'a') {
         unsigned int selected_attack = get_attack(player);
         try {
           player.impose_attack(opponent, player.attacks[selected_attack]);
+        } catch (pokemon_died &) {
+          return 0; // return who won 0 is player, 1 is enemy
         }
-        catch (pokemon_died&) {
-          return 0;
-        }
-      }
-      else if (action == 'r') {
+      } else if (action == 'r') {
         return 2; // signaling a run
-      }
-      else if (action == 'p') {
+      } else if (action == 'p') {
         if (opponent.health <= 10) {
           if ((rand() % 2) == 0) {
             player.collection.push_back(opponent);
-            return 3; // signaling no win as opponent has left(or has been captured)
+            return 3; // signaling no win as opponent has left(or has been
+                      // captured)
           }
         }
       }
-
       if (player.health <= 0) {
         return 1;
       }

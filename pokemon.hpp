@@ -1,20 +1,18 @@
 #pragma once
 
-#include <string>
-#include <vector>
+#include <experimental/filesystem>
 #include <fstream>
 #include <iostream>
-#include <experimental/filesystem>
+#include <string>
 #include <typeinfo>
+#include <vector>
 
 #include "lib/json.hpp"
 
 using namespace nlohmann;
 
 struct pokemon_died : public std::exception {
-  const char* what() const throw() {
-    return "Pokemon Died";
-  }
+  const char *what() const throw() { return "Pokemon Died"; }
 };
 
 struct attack {
@@ -38,9 +36,12 @@ struct pokemon {
 
   std::vector<pokemon> collection;
 
-  pokemon(std::string new_name = "Not Set", unsigned int new_level = 0, int new_health = 0,
-      std::string new_character = "There Is No\nCharacter", std::vector<attack> new_attacks = std::vector<attack>(1, attack("None", 0)),
-      std::vector<pokemon> new_collection = {}) {
+  pokemon(std::string new_name = "Not Set", unsigned int new_level = 0,
+          int new_health = 0,
+          std::string new_character = "There Is No\nCharacter",
+          std::vector<attack> new_attacks =
+              std::vector<attack>(1, attack("None", 0)),
+          std::vector<pokemon> new_collection = {}) {
     name = new_name;
     level = new_level;
     health = new_health;
@@ -50,18 +51,7 @@ struct pokemon {
   }
 
   void impose_attack(pokemon &enemy, attack chosen_attack) {
-    if ((rand() % 2) == 2) {
-      return;
-    }
-    unsigned int sign = rand() & 1;
-    unsigned int damage = rand() % 4;
-    if (sign == 0) {
-      damage = chosen_attack.damage - damage;
-    }
-    else {
-      damage = chosen_attack.damage + damage;
-    }
-    enemy.health = enemy.health - damage;
+    enemy.health = enemy.health - chosen_attack.damage;
     if (enemy.health <= 0) {
       throw pokemon_died();
     }
@@ -70,17 +60,19 @@ struct pokemon {
 
 std::vector<pokemon> get_all_pokemon() {
   std::vector<pokemon> all_pokemon;
-  for (const std::experimental::filesystem::directory_entry &file : std::experimental::filesystem::directory_iterator("./pokemon")) {
+  for (const std::experimental::filesystem::directory_entry &file :
+       std::experimental::filesystem::directory_iterator("./pokemon")) {
     std::ifstream pokemon_file(file.path(), std::ifstream::in);
     json data;
     pokemon_file >> data;
     pokemon_file.close();
     std::vector<attack> new_pokemon_attacks;
     for (auto &attackinjson : data["Attacks"]) {
-      attack new_attack = { attackinjson["Name"], attackinjson["Damage"] };
+      attack new_attack = {attackinjson["Name"], attackinjson["Damage"]};
       new_pokemon_attacks.push_back(new_attack);
     }
-    pokemon new_pokemon(data["Name"], 0, data["Health"], data["Character"], new_pokemon_attacks);
+    pokemon new_pokemon(data["Name"], 0, data["Health"], data["Character"],
+                        new_pokemon_attacks);
     all_pokemon.push_back(new_pokemon);
   }
   return all_pokemon;

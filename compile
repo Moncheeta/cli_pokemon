@@ -1,1 +1,1 @@
-clang++ -O2 -Wall -std=c++20 main.cpp -lstdc++fs -o main
+g++ -O2 -Wall -Wextra -std=c++20 main.cpp -lstdc++fs -o main

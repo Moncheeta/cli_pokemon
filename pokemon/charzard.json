@@ -1,11 +1,11 @@
 {
-	"Name": "Charzard",
-	"Health": 120,
-	"Character": "           .O                 \n           xxl;               \n        l  odddd'.     l      \n     ;:l.   xxxd .     .      \n    :cc;'     dx        ;.    \n  ;clll;c     ,x'      ,':;   \n .cllll:c.    .xo     .,,:c   \n :lllll:c:.   .kx     ;:;clc. \n.c:  .l:l:,,. .Ox   .;,l;:llc \n;.    ;:cc,';;:Ok;;,,':l,;lll.\n,      ,  .:lkk0Oxo;; ,c,  lc.\n         .. ckOOOkx. l ,  :..,\n        lk  ckKNNKl  'l.  ;o ,\n        , ..O0NNNNO  ;c.  kx .\n           xONNNNN0.      KO. \n          dO0NNNNK0o      KX' \n     'llcdOOOXNNX00k:     o:  \n    ;ddod0OOx0KK000kOc    .   \n   ,xxdod0OxO00000OkOO' .'    \n   .oolldxdx00000xoxOkoo      \n     dddxxc        .xx'       \n       ;xd.          dl       \n        .                     ",
-	"Attacks": [
-		{
-			"Name": "Fire",
-			"Damage": 75
-		}
-	]
+  "Name": "Charzard",
+  "Health": 120,
+  "Character": "           .O                 \n           xxl;               \n        l  odddd'.     l      \n     ;:l.   xxxd .     .      \n    :cc;'     dx        ;.    \n  ;clll;c     ,x'      ,':;   \n .cllll:c.    .xo     .,,:c   \n :lllll:c:.   .kx     ;:;clc. \n.c:  .l:l:,,. .Ox   .;,l;:llc \n;.    ;:cc,';;:Ok;;,,':l,;lll.\n,      ,  .:lkk0Oxo;; ,c,  lc.\n         .. ckOOOkx. l ,  :..,\n        lk  ckKNNKl  'l.  ;o ,\n        , ..O0NNNNO  ;c.  kx .\n           xONNNNN0.      KO. \n          dO0NNNNK0o      KX' \n     'llcdOOOXNNX00k:     o:  \n    ;ddod0OOx0KK000kOc    .   \n   ,xxdod0OxO00000OkOO' .'    \n   .oolldxdx00000xoxOkoo      \n     dddxxc        .xx'       \n       ;xd.          dl       \n        .                     ",
+  "Attacks": [
+    {
+      "Name": "Fire",
+      "Damage": 75
+    }
+  ]
 }
