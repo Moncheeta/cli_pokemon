@@ -1,52 +1,23 @@
 #include <array>
-#include <cstdio>
 #include <iostream>
 #include <string>
-#include <termios.h>
-#include <unistd.h>
 #include <vector>
 
 #include "lib/display.hpp"
+#include "lib/util.h"
 #include "pokemon.hpp"
 
-void lower_string(std::string &input) { // this is just for convienice
-  for (char &letter : input) {
-    letter = tolower(letter);
-  }
-}
-
-std::string cut_off_string(std::string text, unsigned int max_length,
-                           std::string cut_off = "...") {
-  if (text.length() < max_length) {
-    return text;
-  }
-  return text.substr(max_length - cut_off.length()) + cut_off;
-}
-
-char getch() {
-  char buf = 0;
-  struct termios old;
-  if (tcgetattr(0, &old) < 0)
-    perror("tcsetattr()");
-  old.c_lflag &= ~ICANON;
-  old.c_lflag &= ~ECHO;
-  old.c_cc[VMIN] = 1;
-  old.c_cc[VTIME] = 0;
-  if (tcsetattr(0, TCSANOW, &old) < 0)
-    perror("tcsetattr ICANON");
-  if (read(0, &buf, 1) < 0)
-    perror("read()");
-  old.c_lflag |= ICANON;
-  old.c_lflag |= ECHO;
-  if (tcsetattr(0, TCSADRAIN, &old) < 0)
-    perror("tcsetattr ~ICANON");
-  return (buf);
-}
-
 class Battle {
-public:
-  Terminal *term = new Terminal();
+private:
+  Terminal *term = nullptr;
 
+public:
+  Battle() { term = new Terminal(); }
+
+  ~Battle() {
+    term->clrscr();
+    delete term;
+  }
   void on_entry() {
     term->clrscr();
     term->write("Welcome to CLI Pokemon!\nPress enter to begin!",
@@ -151,6 +122,8 @@ public:
       } else {
         if (current_sel == 0) {
           term->write(">", {1, term->rows - 5});
+        } else {
+          term->write(" ", {1, term->rows - 5});
         }
       }
       term->draw_quad({0, term->rows - 4}, term->cols / 2, 3);
@@ -162,11 +135,13 @@ public:
         } else {
           term->write(
               cut_off_string(player.attacks[1].name, term->cols / 2 - 2),
-              {1, term->rows - 2});
+              {2, term->rows - 2});
         }
       } else {
         if (current_sel == 1) {
           term->write(">", {1, term->rows - 2});
+        } else {
+          term->write(" ", {1, term->rows - 2});
         }
       }
       term->draw_quad({term->cols / 2, term->rows - 6}, term->cols / 2, 3);
@@ -178,11 +153,13 @@ public:
         } else {
           term->write(
               cut_off_string(player.attacks[2].name, term->cols / 2 - 2),
-              {(term->cols / 2) + 1, term->rows - 5});
+              {(term->cols / 2) + 2, term->rows - 5});
         }
       } else {
         if (current_sel == 2) {
           term->write(">", {(term->cols / 2) + 1, term->rows - 5});
+        } else {
+          term->write(" ", {(term->cols / 2) + 1, term->rows - 5});
         }
       }
       term->draw_quad({term->cols / 2, term->rows - 4}, term->cols / 2, 3);
@@ -194,14 +171,16 @@ public:
         } else {
           term->write(
               cut_off_string(player.attacks[3].name, term->cols / 2 - 2),
-              {term->cols / 2 + 1, term->rows - 2});
+              {term->cols / 2 + 2, term->rows - 2});
         }
       } else {
         if (current_sel == 3) {
           term->write(">", {(term->cols / 2) + 1, term->rows - 2});
+        } else {
+          term->write(" ", {(term->cols / 2) + 1, term->rows - 2});
         }
       }
-      term->print();
+      term->print(false);
       if (getch() == '\n') {
         con = false;
         continue;
@@ -240,6 +219,7 @@ public:
         break;
       }
     }
+    term->clear_screen();
     return current_sel;
   }
 
@@ -293,7 +273,15 @@ int main() {
   Battle *Pokemon = new Battle;
   Pokemon->on_entry();
   std::array<pokemon, 2> players = Pokemon->set_players(all_pokemon);
-  Pokemon->game_loop(players[0], players[1]);
+  unsigned int winner = Pokemon->game_loop(players[0], players[1]);
   delete Pokemon;
+  switch (winner) {
+  case 0:
+    std::cout << "You won!";
+    break;
+  case 1:
+    std::cout << "You lost. Better luck next time!";
+    break;
+  }
   return 0;
 }
