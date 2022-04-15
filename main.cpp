@@ -116,7 +116,7 @@ public:
               {1, term->rows - 5});
         } else {
           term->write(
-              cut_off_string(player.attacks[0].name, term->cols / 2 - 2),
+              cut_off_string(" " + player.attacks[0].name, term->cols / 2 - 2),
               {1, term->rows - 5});
         }
       } else {
@@ -134,8 +134,8 @@ public:
               {1, term->rows - 2});
         } else {
           term->write(
-              cut_off_string(player.attacks[1].name, term->cols / 2 - 2),
-              {2, term->rows - 2});
+              cut_off_string(" " + player.attacks[1].name, term->cols / 2 - 2),
+              {1, term->rows - 2});
         }
       } else {
         if (current_sel == 1) {
@@ -152,8 +152,8 @@ public:
               {(term->cols / 2) + 1, term->rows - 5});
         } else {
           term->write(
-              cut_off_string(player.attacks[2].name, term->cols / 2 - 2),
-              {(term->cols / 2) + 2, term->rows - 5});
+              cut_off_string(" " + player.attacks[2].name, term->cols / 2 - 2),
+              {(term->cols / 2) + 1, term->rows - 5});
         }
       } else {
         if (current_sel == 2) {
@@ -170,8 +170,8 @@ public:
               {term->cols / 2 + 1, term->rows - 2});
         } else {
           term->write(
-              cut_off_string(player.attacks[3].name, term->cols / 2 - 2),
-              {term->cols / 2 + 2, term->rows - 2});
+              cut_off_string(" " + player.attacks[3].name, term->cols / 2 - 2),
+              {term->cols / 2 + 1, term->rows - 2});
         }
       } else {
         if (current_sel == 3) {
@@ -281,6 +281,15 @@ int main() {
     break;
   case 1:
     std::cout << "You lost. Better luck next time!";
+    break;
+  case 2:
+    std::cout << "You have successfully ran away!";
+    break;
+  case 3:
+    std::cout
+        << "You have successfully captured "
+        << players[0].collection.back().name
+        << "!"; // newly captured pokemon are appended to the back of the vector
     break;
   }
   return 0;
