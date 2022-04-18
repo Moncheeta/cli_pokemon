@@ -57,23 +57,3 @@ struct pokemon {
     }
   }
 };
-
-std::vector<pokemon> get_all_pokemon() {
-  std::vector<pokemon> all_pokemon;
-  for (const std::experimental::filesystem::directory_entry &file :
-       std::experimental::filesystem::directory_iterator("./pokemon")) {
-    std::ifstream pokemon_file(file.path(), std::ifstream::in);
-    json data;
-    pokemon_file >> data;
-    pokemon_file.close();
-    std::vector<attack> new_pokemon_attacks;
-    for (auto &attackinjson : data["Attacks"]) {
-      attack new_attack = {attackinjson["Name"], attackinjson["Damage"]};
-      new_pokemon_attacks.push_back(new_attack);
-    }
-    pokemon new_pokemon(data["Name"], 0, data["Health"], data["Character"],
-                        new_pokemon_attacks);
-    all_pokemon.push_back(new_pokemon);
-  }
-  return all_pokemon;
-}
