@@ -1,17 +1,22 @@
 #include <iostream>
+#include <vector>
 
 #include "lib/battle.hpp"
 #include "lib/display.hpp"
+#include "lib/util.hpp"
+#include "pokemon.hpp"
 
 int main() {
-  Terminal *term = new Terminal;
+  Terminal *term = new Terminal();
   term->clrscr();
   term->write("Welcome to CLI Pokemon!\nPress enter to begin!",
-              {0, 0, center_both});
+             {0, 0, center_both});
   term->print();
   std::cin.get();
   term->clrscr();
-  std::pair<unsigned int, std::pair<pokemon, pokemon>> results = start_battle(term);
+  std::vector<pokemon> all_pokemon = get_all_pokemon();
+  std::pair<unsigned int, std::pair<pokemon, pokemon>> results =
+      start_battle(all_pokemon, *term);
   switch (std::get<0>(results)) {
   case 0:
     std::cout << "You won!";
@@ -29,5 +34,6 @@ int main() {
         << "!"; // newly captured pokemon are appended to the back of the vector
     break;
   }
+  std::cout << "\nThanks for playing!";
   return 0;
 }

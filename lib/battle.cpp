@@ -9,16 +9,9 @@
 #include "display.hpp"
 #include "util.hpp"
 
-Battle::Battle(Terminal *term) {
-  if (term == nullptr) {
-    term = new Terminal();
-  }
-}
+Battle::Battle(Terminal &new_term) { term = &new_term; }
 
-Battle::~Battle() {
-  term->clrscr();
-  delete term;
-}
+Battle::~Battle() { term->clrscr(); }
 
 std::pair<pokemon, pokemon>
 Battle::set_players(const std::vector<pokemon> &list_of_pokemon) {
@@ -261,13 +254,14 @@ unsigned int Battle::game_loop(std::pair<pokemon, pokemon> &players) {
   }
 }
 
-std::pair<unsigned int, std::pair<pokemon, pokemon>> start_battle(Terminal *term = nullptr) {
+std::pair<unsigned int, std::pair<pokemon, pokemon>>
+start_battle(std::vector<pokemon> &all_pokemon, Terminal &term) {
   srand(time(NULL));
-  static const std::vector<pokemon> all_pokemon = get_all_pokemon();
   Battle *Pokemon = new Battle(term);
   std::pair<pokemon, pokemon> players = Pokemon->set_players(all_pokemon);
   unsigned int winner = Pokemon->game_loop(players);
+  std::pair<unsigned int, std::pair<pokemon, pokemon>> results =
+      std::make_pair(winner, players);
   delete Pokemon;
-  std::pair<unsigned int, std::pair<pokemon, pokemon>> results(winner, players);
   return results;
 }

@@ -14,7 +14,7 @@ private:
   Terminal *term = nullptr;
 
 public:
-  Battle(Terminal *term = nullptr);
+  Battle(Terminal &term);
   ~Battle();
 
   std::pair<pokemon, pokemon>
@@ -30,4 +30,5 @@ public:
   unsigned int game_loop(std::pair<pokemon, pokemon> &);
 };
 
-std::pair<unsigned int, std::pair<pokemon, pokemon>> start_battle(Terminal *term);
+std::pair<unsigned int, std::pair<pokemon, pokemon>>
+start_battle(std::vector<pokemon> &, Terminal &);
