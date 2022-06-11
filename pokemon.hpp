@@ -56,4 +56,9 @@ struct pokemon {
       throw pokemon_died();
     }
   }
+
+  void choose_action(pokemon &opponent) {
+    attack &chosen_attack = attacks[rand() % attacks.size()];
+    impose_attack(opponent, chosen_attack);
+  }
 };

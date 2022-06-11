@@ -4,10 +4,10 @@
 #include <vector>
 
 #include "battle.hpp"
+#include "pokemon.hpp"
 
-#include "../pokemon.hpp"
-#include "display.hpp"
-#include "util.hpp"
+#include "lib/display.hpp"
+#include "lib/util.hpp"
 
 Battle::Battle(Terminal &new_term) { term = &new_term; }
 
@@ -251,6 +251,7 @@ unsigned int Battle::game_loop(std::pair<pokemon, pokemon> &players) {
     if (player.health <= 0) {
       return 1;
     }
+    opponent.choose_action(player);
   }
 }
 

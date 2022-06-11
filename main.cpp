@@ -1,9 +1,9 @@
 #include <iostream>
 #include <vector>
 
-#include "lib/battle.hpp"
 #include "lib/display.hpp"
 #include "lib/util.hpp"
+#include "battle.hpp"
 #include "pokemon.hpp"
 
 int main() {

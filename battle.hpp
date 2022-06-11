@@ -5,9 +5,9 @@
 #include <string>
 #include <vector>
 
-#include "../pokemon.hpp"
-#include "display.hpp"
-#include "util.hpp"
+#include "pokemon.hpp"
+#include "lib/display.hpp"
+#include "lib/util.hpp"
 
 class Battle {
 private:
